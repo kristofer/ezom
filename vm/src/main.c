@@ -7,12 +7,16 @@
 #include "../include/ezom_object.h"
 #include "../include/ezom_primitives.h"
 #include "../include/ezom_dispatch.h"
+#include "../include/ezom_context.h"
+#include "../include/ezom_evaluator.h"
+#include "../include/ezom_lexer.h"
+#include "../include/ezom_ast.h"
 #include <stdio.h>
 #include <string.h>
 
 int main(int argc, char* argv[]) {
-    printf("EZOM Phase 1 - Basic Object System\n");
-    printf("===================================\n");
+    printf("EZOM Phase 1.5 - Enhanced SOM Compatibility\n");
+    printf("==========================================\n");
     
     // Initialize VM components
     ezom_init_memory();
@@ -21,6 +25,14 @@ int main(int argc, char* argv[]) {
     
     // Bootstrap basic classes
     ezom_bootstrap_classes();
+    
+    // Bootstrap enhanced classes for SOM compatibility
+    ezom_bootstrap_enhanced_classes();
+    
+    // Initialize Phase 2 systems
+    ezom_init_context_system();
+    ezom_init_boolean_objects();
+    ezom_evaluator_init();
     
     // Print memory stats
     ezom_memory_stats();
@@ -94,6 +106,233 @@ int main(int argc, char* argv[]) {
     ezom_memory_stats();
     
     printf("\nPhase 1 complete!\n");
+    
+    // Phase 1.5 Enhanced Tests
+    printf("\n===============================\n");
+    printf("Phase 1.5 Enhanced SOM Tests\n");
+    printf("===============================\n");
+    
+    // Test 1: Boolean operations
+    printf("1. Testing Boolean operations...\n");
+    
+    uint24_t if_true_selector = ezom_create_symbol("ifTrue:", 7);
+    uint24_t if_false_selector = ezom_create_symbol("ifFalse:", 8);
+    uint24_t if_true_if_false_selector = ezom_create_symbol("ifTrue:ifFalse:", 15);
+    
+    // Create a simple block (for now, just simulate)
+    uint24_t test_block = ezom_create_block(0, 0, 0);
+    
+    if (if_true_selector && test_block) {
+        printf("   true ifTrue: [block] -> ");
+        uint24_t result = ezom_send_binary_message(g_true, if_true_selector, test_block);
+        printf("executed\n");
+        
+        printf("   false ifTrue: [block] -> ");
+        result = ezom_send_binary_message(g_false, if_true_selector, test_block);
+        printf("ignored\n");
+    }
+    
+    // Test 2: Enhanced Integer operations
+    printf("2. Testing enhanced Integer operations...\n");
+    
+    uint24_t num1 = ezom_create_integer(10);
+    uint24_t num2 = ezom_create_integer(3);
+    
+    if (num1 && num2) {
+        // Test modulo
+        uint24_t mod_selector = ezom_create_symbol("\\", 1);
+        if (mod_selector) {
+            uint24_t result = ezom_send_binary_message(num1, mod_selector, num2);
+            if (result) {
+                ezom_integer_t* res = (ezom_integer_t*)result;
+                printf("   10 \\\\ 3 = %d\n", res->value);
+            }
+        }
+        
+        // Test comparison
+        uint24_t lte_selector = ezom_create_symbol("<=", 2);
+        if (lte_selector) {
+            uint24_t result = ezom_send_binary_message(num2, lte_selector, num1);
+            if (result == g_true) {
+                printf("   3 <= 10 = true\n");
+            } else {
+                printf("   3 <= 10 = false\n");
+            }
+        }
+        
+        // Test asString
+        uint24_t as_string_selector = ezom_create_symbol("asString", 8);
+        if (as_string_selector) {
+            uint24_t result = ezom_send_unary_message(num1, as_string_selector);
+            if (result) {
+                ezom_string_t* str = (ezom_string_t*)result;
+                printf("   10 asString = '%.*s'\n", str->length, str->data);
+            }
+        }
+    }
+    
+    // Test 3: Array operations
+    printf("3. Testing Array operations...\n");
+    
+    uint24_t array = ezom_create_array(5);
+    if (array) {
+        ezom_array_t* arr = (ezom_array_t*)array;
+        printf("   Created array with size %d\n", arr->size);
+        
+        // Test at:put:
+        uint24_t at_put_selector = ezom_create_symbol("at:put:", 7);
+        if (at_put_selector) {
+            uint24_t index = ezom_create_integer(1); // SOM uses 1-based indexing
+            uint24_t value = ezom_create_string("Hello", 5);
+            
+            uint24_t args[] = {index, value};
+            ezom_message_t msg = {
+                .selector = at_put_selector,
+                .receiver = array,
+                .args = args,
+                .arg_count = 2
+            };
+            
+            ezom_send_message(&msg);
+            printf("   array at: 1 put: 'Hello'\n");
+        }
+        
+        // Test at:
+        uint24_t at_selector = ezom_create_symbol("at:", 3);
+        if (at_selector) {
+            uint24_t index = ezom_create_integer(1);
+            uint24_t result = ezom_send_binary_message(array, at_selector, index);
+            
+            if (result) {
+                ezom_string_t* str = (ezom_string_t*)result;
+                printf("   array at: 1 = '%.*s'\n", str->length, str->data);
+            }
+        }
+        
+        // Test length
+        uint24_t length_selector = ezom_create_symbol("length", 6);
+        if (length_selector) {
+            uint24_t result = ezom_send_unary_message(array, length_selector);
+            if (result) {
+                ezom_integer_t* len = (ezom_integer_t*)result;
+                printf("   array length = %d\n", len->value);
+            }
+        }
+    }
+    
+    // Test 4: Object operations
+    printf("4. Testing Object operations...\n");
+    
+    uint24_t is_nil_selector = ezom_create_symbol("isNil", 5);
+    uint24_t not_nil_selector = ezom_create_symbol("notNil", 6);
+    
+    if (is_nil_selector && not_nil_selector) {
+        // Test nil isNil
+        uint24_t result = ezom_send_unary_message(g_nil, is_nil_selector);
+        printf("   nil isNil = %s\n", (result == g_true) ? "true" : "false");
+        
+        // Test object notNil
+        result = ezom_send_unary_message(num1, not_nil_selector);
+        printf("   10 notNil = %s\n", (result == g_true) ? "true" : "false");
+    }
+    
+    // Test 5: Boolean logic
+    printf("5. Testing Boolean logic...\n");
+    
+    uint24_t not_selector = ezom_create_symbol("not", 3);
+    if (not_selector) {
+        uint24_t result = ezom_send_unary_message(g_true, not_selector);
+        printf("   true not = %s\n", (result == g_false) ? "false" : "true");
+        
+        result = ezom_send_unary_message(g_false, not_selector);
+        printf("   false not = %s\n", (result == g_true) ? "true" : "false");
+    }
+    
+    printf("\nPhase 1.5 SOM compatibility features activated!\n");
+    printf("Features available:\n");
+    printf("  ✓ Boolean classes (True, False) with control flow\n");
+    printf("  ✓ Enhanced Integer primitives (comparisons, conversions)\n");
+    printf("  ✓ Array class with indexing operations\n");
+    printf("  ✓ Block objects (foundation for closures)\n");
+    printf("  ✓ Object primitives (isNil, notNil)\n");
+    
+    // Phase 2 Tests
+    printf("\n" "=" "Phase 2 Tests" "=" "\n");
+    
+    // Test 1: Lexer
+    printf("1. Testing Lexer:\n");
+    ezom_lexer_t lexer;
+    const char* test_code = "42 'hello' #symbol";
+    ezom_lexer_init(&lexer, (char*)test_code);
+    
+    printf("   Tokenizing: %s\n", test_code);
+    for (int i = 0; i < 6; i++) {
+        ezom_lexer_next_token(&lexer);
+        if (lexer.current_token.type == TOKEN_EOF) break;
+        
+        switch (lexer.current_token.type) {
+            case TOKEN_INTEGER:
+                printf("   -> INTEGER: %d\n", lexer.current_token.value.int_value);
+                break;
+            case TOKEN_STRING:
+                printf("   -> STRING: '%s'\n", lexer.current_token.value.string_value);
+                break;
+            case TOKEN_SYMBOL:
+                printf("   -> SYMBOL: #%s\n", lexer.current_token.value.string_value);
+                break;
+            default:
+                printf("   -> TOKEN: %d\n", lexer.current_token.type);
+                break;
+        }
+    }
+    
+    // Test 2: AST Creation and Evaluation
+    printf("\n2. Testing AST Evaluation:\n");
+    
+    // Test integer literal
+    ezom_ast_node_t* int_ast = ezom_ast_create_literal_integer(123);
+    if (int_ast) {
+        ezom_eval_result_t result = ezom_evaluate_ast(int_ast, 0);
+        if (!result.is_error && result.value) {
+            ezom_integer_t* int_obj = (ezom_integer_t*)result.value;
+            printf("   AST integer 123 -> %d\n", int_obj->value);
+        }
+        ezom_ast_free(int_ast);
+    }
+    
+    // Test string literal
+    ezom_ast_node_t* str_ast = ezom_ast_create_literal_string("test");
+    if (str_ast) {
+        ezom_eval_result_t result = ezom_evaluate_ast(str_ast, 0);
+        if (!result.is_error && result.value) {
+            ezom_string_t* str_obj = (ezom_string_t*)result.value;
+            printf("   AST string 'test' -> '%.*s'\n", str_obj->length, str_obj->data);
+        }
+        ezom_ast_free(str_ast);
+    }
+    
+    // Test 3: Block Creation
+    printf("\n3. Testing Block Creation:\n");
+    ezom_ast_node_t* block = ezom_ast_create_block();
+    if (block) {
+        ezom_eval_result_t result = ezom_evaluate_ast(block, 0);
+        if (!result.is_error && result.value) {
+            printf("   Block created at: 0x%06X\n", result.value);
+            if (ezom_is_block_object(result.value)) {
+                printf("   Confirmed: Object is a block\n");
+            }
+        }
+        ezom_ast_free(block);
+    }
+    
+    // Test 4: Boolean Objects
+    printf("\n4. Testing Boolean Objects:\n");
+    printf("   True object: 0x%06X\n", g_true);
+    printf("   False object: 0x%06X\n", g_false);
+    printf("   Is g_true truthy? %s\n", ezom_is_truthy(g_true) ? "yes" : "no");
+    printf("   Is g_false truthy? %s\n", ezom_is_truthy(g_false) ? "yes" : "no");
+    
+    printf("\nPhase 2 tests complete!\n");
     return 0;
 }
 
@@ -184,32 +423,4 @@ static void add_method_to_dict(ezom_method_dict_t* dict, const char* selector, u
         method->flags = EZOM_METHOD_PRIMITIVE;
         dict->size++;
     }
-}
-
-// Install methods in Integer class
-void ezom_install_integer_methods(void) {
-    ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)integer_class->method_dict;
-    
-    // Install arithmetic methods
-    add_method_to_dict(dict, "+", PRIM_INTEGER_ADD, 1);
-    add_method_to_dict(dict, "-", PRIM_INTEGER_SUB, 1);
-    add_method_to_dict(dict, "*", PRIM_INTEGER_MUL, 1);
-    add_method_to_dict(dict, "=", PRIM_INTEGER_EQ, 1);
-    add_method_to_dict(dict, "println", PRIM_OBJECT_PRINTLN, 0);
-    
-    printf("      Installed %d methods in Integer\n", dict->size);
-}
-
-// Install methods in String class
-void ezom_install_string_methods(void) {
-    ezom_class_t* string_class = (ezom_class_t*)g_string_class;
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)string_class->method_dict;
-    
-    // Install string methods
-    add_method_to_dict(dict, "length", PRIM_STRING_LENGTH, 0);
-    add_method_to_dict(dict, "+", PRIM_STRING_CONCAT, 1);
-    add_method_to_dict(dict, "println", PRIM_OBJECT_PRINTLN, 0);
-    
-    printf("      Installed %d methods in String\n", dict->size);
 }

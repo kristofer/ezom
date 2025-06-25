@@ -1,0 +1,22 @@
+# ----------------------------
+# Test Makefile for Phase 2
+# ----------------------------
+
+NAME=ezom_phase2_test
+
+# Select option for Argument Processing at 'int main( int argc, char* argv[] )'
+LDHAS_ARG_PROCESSING = 0
+LDHAS_EXIT_HANDLER = 0
+
+# ----------------------------
+# Include path for headers
+# ----------------------------
+CFLAGS += -Iinclude
+
+# Exclude main.c and include test_phase2.c instead
+EXCLUDE_SOURCES = src/main.c
+EXTRA_SOURCES = src/test_phase2.c
+
+# ----------------------------
+#
+include $(shell agondev-config --makefile)

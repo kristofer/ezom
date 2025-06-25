@@ -8,13 +8,13 @@
 #include <stdio.h>
 #include <string.h>
 
-// Global class pointers (will be initialized in bootstrap)
-uint24_t g_object_class = 0;
-uint24_t g_class_class = 0;
-uint24_t g_integer_class = 0;
-uint24_t g_string_class = 0;
-uint24_t g_symbol_class = 0;
-uint24_t g_nil = 0;
+// Global class pointers (defined in bootstrap.c)
+extern uint24_t g_object_class;
+extern uint24_t g_class_class;
+extern uint24_t g_integer_class;
+extern uint24_t g_string_class;
+extern uint24_t g_symbol_class;
+extern uint24_t g_nil;
 
 void ezom_init_object_system(void) {
     printf("EZOM: Initializing object system...\n");
