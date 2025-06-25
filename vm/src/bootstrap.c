@@ -41,7 +41,15 @@ void ezom_install_block_methods(void);
 void ezom_bootstrap_enhanced_classes(void) {
     printf("Bootstrapping enhanced SOM-compatible classes...\n");
     
-    // 1. Create Nil class and singleton first
+    // CRITICAL: Create singletons FIRST before any other objects use them
+    // Create a minimal nil object immediately
+    g_nil = ezom_allocate(sizeof(ezom_object_t));
+    if (g_nil) {
+        ezom_init_object(g_nil, 0, EZOM_TYPE_NIL); // Temporarily no class
+        printf("   Nil singleton created early at 0x%06X\n", g_nil);
+    }
+    
+    // 1. Create Nil class and fix nil singleton
     g_nil_class = ezom_allocate(sizeof(ezom_class_t));
     ezom_init_object(g_nil_class, g_object_class, EZOM_TYPE_CLASS);
     
@@ -52,9 +60,11 @@ void ezom_bootstrap_enhanced_classes(void) {
     nil_class->instance_size = sizeof(ezom_object_t);
     nil_class->instance_var_count = 0;
     
-    // Create nil singleton
-    g_nil = ezom_allocate(sizeof(ezom_object_t));
-    ezom_init_object(g_nil, g_nil_class, EZOM_TYPE_NIL);
+    // Fix nil singleton's class pointer
+    if (g_nil) {
+        ezom_object_t* nil_obj = (ezom_object_t*)g_nil;
+        nil_obj->class_ptr = g_nil_class;
+    }
     
     printf("   Nil class and singleton created\n");
     

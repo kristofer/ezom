@@ -142,8 +142,12 @@ ezom_eval_result_t ezom_evaluate_message_send(ezom_ast_node_t* node, uint24_t co
     } else {
         // Keyword message
         uint24_t arg_values[16]; // Max 16 arguments
-        uint8_t arg_count = ezom_evaluate_arguments(node->data.message_send.arguments, 
-                                                   arg_values, 16, context);
+        ezom_eval_result_t arg_result = ezom_evaluate_arguments(node->data.message_send.arguments, 
+                                                              arg_values, 16, context);
+        if (arg_result.is_error) {
+            return arg_result;
+        }
+        uint8_t arg_count = (uint8_t)arg_result.value;
         return ezom_eval_send_keyword_message(receiver, selector, arg_values, arg_count, context);
     }
 }
@@ -281,22 +285,54 @@ ezom_eval_result_t ezom_evaluate_block_literal(ezom_ast_node_t* node, uint24_t c
     return ezom_make_result(block_obj);
 }
 
-// Class definition evaluation
+// Enhanced class definition evaluation
 ezom_eval_result_t ezom_evaluate_class_definition(ezom_ast_node_t* node, uint24_t context) {
     if (!node || node->type != AST_CLASS_DEF) {
         return ezom_make_error_result("Invalid class definition node");
     }
     
-    // For now, just register the class name as a global
-    // Full class creation would require more complex bootstrap
     printf("Defining class: %s\n", node->data.class_def.name);
     
-    // Create a basic class object
-    uint24_t class_obj = ezom_allocate(sizeof(ezom_class_t));
-    if (class_obj) {
-        ezom_init_object(class_obj, g_object_class, EZOM_TYPE_CLASS);
-        ezom_set_global(node->data.class_def.name, class_obj);
+    // Determine superclass
+    uint24_t superclass = g_object_class;
+    if (node->data.class_def.superclass && node->data.class_def.superclass->type == AST_IDENTIFIER) {
+        uint24_t super_obj = ezom_lookup_global(node->data.class_def.superclass->data.identifier.name);
+        if (super_obj != g_nil) {
+            superclass = super_obj;
+        }
     }
+    
+    // Count instance variables
+    uint16_t instance_var_count = 0;
+    if (node->data.class_def.instance_vars) {
+        instance_var_count = ezom_ast_count_locals(node->data.class_def.instance_vars);
+    }
+    
+    // Create class object with proper inheritance
+    uint24_t class_obj = ezom_create_class_with_inheritance(
+        node->data.class_def.name, 
+        superclass, 
+        instance_var_count
+    );
+    
+    if (!class_obj) {
+        return ezom_make_error_result("Failed to create class object");
+    }
+    
+    // Install instance methods
+    if (node->data.class_def.instance_methods) {
+        ezom_install_methods_from_ast(class_obj, node->data.class_def.instance_methods, false);
+    }
+    
+    // Install class methods
+    if (node->data.class_def.class_methods) {
+        ezom_class_t* class_struct = (ezom_class_t*)class_obj;
+        uint24_t metaclass = class_struct->header.class_ptr; // Class's class
+        ezom_install_methods_from_ast(metaclass, node->data.class_def.class_methods, true);
+    }
+    
+    // Register class as global
+    ezom_set_global(node->data.class_def.name, class_obj);
     
     return ezom_make_result(class_obj);
 }
@@ -348,7 +384,11 @@ ezom_eval_result_t ezom_eval_send_message(uint24_t receiver, const char* selecto
     uint8_t arg_count = 0;
     
     if (arguments) {
-        arg_count = ezom_evaluate_arguments(arguments, arg_values, 16, context);
+        ezom_eval_result_t arg_result = ezom_evaluate_arguments(arguments, arg_values, 16, context);
+        if (arg_result.is_error) {
+            return arg_result;
+        }
+        arg_count = (uint8_t)arg_result.value;
     }
     
     // Create selector symbol and dispatch message using existing system
@@ -396,10 +436,9 @@ ezom_eval_result_t ezom_eval_send_keyword_message(uint24_t receiver, const char*
 }
 
 // Argument evaluation
-uint8_t ezom_evaluate_arguments(ezom_ast_node_t* arg_list, uint24_t* arg_values, 
-                               uint8_t max_args, uint24_t context) {
-    ezom_eval_result_t result = ezom_evaluate_arguments_internal(arg_list, arg_values, max_args, context);
-    return result.is_error ? 0 : (uint8_t)result.value;
+ezom_eval_result_t ezom_evaluate_arguments(ezom_ast_node_t* arg_list, uint24_t* arg_values, 
+                                         uint8_t max_args, uint24_t context) {
+    return ezom_evaluate_arguments_internal(arg_list, arg_values, max_args, context);
 }
 
 static ezom_eval_result_t ezom_evaluate_arguments_internal(ezom_ast_node_t* arg_list, 
@@ -528,4 +567,117 @@ void ezom_evaluator_trace_message(const char* selector, uint24_t receiver, uint2
         printf(")");
     }
     printf("\n");
+}
+
+// Phase 2: Enhanced evaluation functions for class creation and method installation
+
+// Class creation and method installation functions
+
+uint24_t ezom_create_class_with_inheritance(const char* name, uint24_t superclass, uint16_t instance_var_count) {
+    // Allocate class object
+    uint24_t class_ptr = ezom_allocate(sizeof(ezom_class_t));
+    if (!class_ptr) return 0;
+    
+    // Initialize as class object
+    ezom_init_object(class_ptr, g_class_class ? g_class_class : g_object_class, EZOM_TYPE_CLASS);
+    
+    ezom_class_t* class_obj = (ezom_class_t*)class_ptr;
+    class_obj->superclass = superclass;
+    class_obj->method_dict = ezom_create_method_dictionary(16);
+    class_obj->instance_vars = 0; // TODO: Support instance variable names
+    class_obj->instance_var_count = instance_var_count;
+    
+    // Calculate instance size including superclass
+    uint16_t super_size = sizeof(ezom_object_t);
+    if (superclass) {
+        ezom_class_t* super = (ezom_class_t*)superclass;
+        super_size = super->instance_size;
+    }
+    
+    class_obj->instance_size = super_size + (instance_var_count * sizeof(uint24_t));
+    
+    printf("Created class '%s' at 0x%06X (superclass: 0x%06X, size: %d)\n", 
+           name, class_ptr, superclass, class_obj->instance_size);
+    
+    return class_ptr;
+}
+
+uint24_t ezom_create_instance(uint24_t class_ptr) {
+    if (!class_ptr) return 0;
+    
+    ezom_class_t* class_obj = (ezom_class_t*)class_ptr;
+    uint24_t instance_ptr = ezom_allocate(class_obj->instance_size);
+    if (!instance_ptr) return 0;
+    
+    ezom_init_object(instance_ptr, class_ptr, EZOM_TYPE_OBJECT);
+    
+    return instance_ptr;
+}
+
+void ezom_install_method_in_class(uint24_t class_ptr, const char* selector, uint24_t code, uint8_t arg_count, bool is_primitive) {
+    if (!class_ptr) return;
+    
+    ezom_class_t* class_obj = (ezom_class_t*)class_ptr;
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)class_obj->method_dict;
+    if (!dict) return;
+    
+    // Check if method already exists (override)
+    uint24_t selector_symbol = ezom_create_symbol(selector, strlen(selector));
+    
+    for (uint16_t i = 0; i < dict->size; i++) {
+        if (dict->methods[i].selector == selector_symbol) {
+            // Override existing method
+            dict->methods[i].code = code;
+            dict->methods[i].arg_count = arg_count;
+            dict->methods[i].flags = is_primitive ? EZOM_METHOD_PRIMITIVE : 0;
+            return;
+        }
+    }
+    
+    // Add new method
+    if (dict->size >= dict->capacity) {
+        printf("Warning: Method dictionary full for class 0x%06X\n", class_ptr);
+        return;
+    }
+    
+    ezom_method_t* method = &dict->methods[dict->size];
+    method->selector = selector_symbol;
+    method->code = code;
+    method->arg_count = arg_count;
+    method->flags = is_primitive ? EZOM_METHOD_PRIMITIVE : 0;
+    dict->size++;
+    
+    printf("Installed method '%s' in class 0x%06X\n", selector, class_ptr);
+}
+
+void ezom_install_methods_from_ast(uint24_t class_ptr, ezom_ast_node_t* method_list, bool is_class_method) {
+    if (!class_ptr || !method_list) return;
+    
+    // Iterate through method list
+    ezom_ast_node_t* current = method_list->data.statement_list.statements;
+    while (current) {
+        if (current->type == AST_METHOD_DEF) {
+            // Compile method from AST
+            uint24_t method_code = ezom_compile_method_from_ast(current);
+            if (method_code) {
+                uint8_t arg_count = ezom_ast_count_parameters(current->data.method_def.parameters);
+                ezom_install_method_in_class(class_ptr, current->data.method_def.selector, 
+                                           method_code, arg_count, false);
+            }
+        }
+        current = current->next;
+    }
+}
+
+uint24_t ezom_compile_method_from_ast(ezom_ast_node_t* method_ast) {
+    if (!method_ast || method_ast->type != AST_METHOD_DEF) {
+        return 0;
+    }
+    
+    // For Phase 2, we'll create a simple method object that contains the AST
+    // In a full implementation, this would compile to bytecode
+    
+    // For now, return a pointer to the AST node itself
+    // This allows the method to be "executed" by evaluating the AST
+    return (uint24_t)method_ast;
 }

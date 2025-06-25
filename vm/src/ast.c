@@ -110,31 +110,55 @@ ezom_ast_node_t* ezom_ast_create_literal_integer(int16_t value) {
     return node;
 }
 
-ezom_ast_node_t* ezom_ast_create_literal_string(char* value) {
+ezom_ast_node_t* ezom_ast_create_literal_string(const char* value) {
     ezom_ast_node_t* node = ezom_ast_create(AST_LITERAL);
     if (!node) return NULL;
+    if (!value) {
+        free(node);
+        return NULL;
+    }
     
     node->data.literal.type = LITERAL_STRING;
     node->data.literal.value.string_value = strdup(value);
+    if (!node->data.literal.value.string_value) {
+        free(node);
+        return NULL;
+    }
     
     return node;
 }
 
-ezom_ast_node_t* ezom_ast_create_literal_symbol(char* value) {
+ezom_ast_node_t* ezom_ast_create_literal_symbol(const char* value) {
     ezom_ast_node_t* node = ezom_ast_create(AST_LITERAL);
     if (!node) return NULL;
+    if (!value) {
+        free(node);
+        return NULL;
+    }
     
     node->data.literal.type = LITERAL_SYMBOL;
     node->data.literal.value.symbol_value = strdup(value);
+    if (!node->data.literal.value.symbol_value) {
+        free(node);
+        return NULL;
+    }
     
     return node;
 }
 
-ezom_ast_node_t* ezom_ast_create_identifier(char* name) {
+ezom_ast_node_t* ezom_ast_create_identifier(const char* name) {
     ezom_ast_node_t* node = ezom_ast_create(AST_IDENTIFIER);
     if (!node) return NULL;
+    if (!name) {
+        free(node);
+        return NULL;
+    }
     
     node->data.identifier.name = strdup(name);
+    if (!node->data.identifier.name) {
+        free(node);
+        return NULL;
+    }
     
     return node;
 }

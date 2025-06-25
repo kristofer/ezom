@@ -142,9 +142,9 @@ ezom_ast_node_t* ezom_ast_create_block(void);
 ezom_ast_node_t* ezom_ast_create_return(ezom_ast_node_t* expression);
 ezom_ast_node_t* ezom_ast_create_assignment(ezom_ast_node_t* variable, ezom_ast_node_t* value);
 ezom_ast_node_t* ezom_ast_create_literal_integer(int16_t value);
-ezom_ast_node_t* ezom_ast_create_literal_string(char* value);
-ezom_ast_node_t* ezom_ast_create_literal_symbol(char* value);
-ezom_ast_node_t* ezom_ast_create_identifier(char* name);
+ezom_ast_node_t* ezom_ast_create_literal_string(const char* value);
+ezom_ast_node_t* ezom_ast_create_literal_symbol(const char* value);
+ezom_ast_node_t* ezom_ast_create_identifier(const char* name);
 ezom_ast_node_t* ezom_ast_create_variable_list(void);
 ezom_ast_node_t* ezom_ast_create_statement_list(void);
 

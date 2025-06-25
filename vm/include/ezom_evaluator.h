@@ -55,16 +55,17 @@ ezom_eval_result_t ezom_eval_send_binary_message(uint24_t receiver, const char* 
 ezom_eval_result_t ezom_eval_send_keyword_message(uint24_t receiver, const char* selector, 
                                                  uint24_t* arguments, uint8_t arg_count, uint24_t context);
 
-// Argument evaluation
-uint8_t ezom_evaluate_arguments(ezom_ast_node_t* arg_list, uint24_t* arg_values, 
-                               uint8_t max_args, uint24_t context);
-
 // Control flow evaluation
 ezom_eval_result_t ezom_evaluate_if_true(uint24_t condition, uint24_t true_block, uint24_t context);
 ezom_eval_result_t ezom_evaluate_if_false(uint24_t condition, uint24_t false_block, uint24_t context);
 ezom_eval_result_t ezom_evaluate_if_true_if_false(uint24_t condition, uint24_t true_block, 
                                                 uint24_t false_block, uint24_t context);
 ezom_eval_result_t ezom_evaluate_while_true(uint24_t condition_block, uint24_t body_block, uint24_t context);
+
+// Phase 2: Enhanced evaluation functions
+uint24_t ezom_create_ast_block(ezom_ast_node_t* block_ast, uint24_t context);
+ezom_eval_result_t ezom_evaluate_arguments(ezom_ast_node_t* arg_list, uint24_t* arg_values, 
+                                         uint8_t max_args, uint24_t context);
 
 // Utility functions
 ezom_eval_result_t ezom_make_result(uint24_t value);

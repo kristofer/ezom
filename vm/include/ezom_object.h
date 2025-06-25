@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// Forward declarations
+typedef struct ezom_ast_node ezom_ast_node_t;
+
 // Object header - 6 bytes total in ADL mode
 typedef struct ezom_object {
     uint24_t class_ptr;     // Pointer to class object (3 bytes)
@@ -144,6 +147,13 @@ uint24_t ezom_object_to_string(uint24_t obj_ptr);
 uint24_t ezom_create_array(uint16_t size);
 uint24_t ezom_create_block(uint8_t param_count, uint8_t local_count, uint24_t outer_context);
 uint24_t ezom_create_context(uint24_t outer_context, uint8_t local_count);
+
+// Phase 2: Class creation and method installation functions
+uint24_t ezom_create_class_with_inheritance(const char* name, uint24_t superclass, uint16_t instance_var_count);
+uint24_t ezom_create_instance(uint24_t class_ptr);
+void ezom_install_method_in_class(uint24_t class_ptr, const char* selector, uint24_t code, uint8_t arg_count, bool is_primitive);
+void ezom_install_methods_from_ast(uint24_t class_ptr, ezom_ast_node_t* method_list, bool is_class_method);
+uint24_t ezom_compile_method_from_ast(ezom_ast_node_t* method_ast);
 
 // Bootstrap functions
 void ezom_bootstrap_classes(void);

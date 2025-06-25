@@ -1,0 +1,30 @@
+# Test makefile for native compilation
+CC=gcc
+CFLAGS=-Wall -g -DDEBUG_NATIVE
+TARGET=ezom_debug
+
+SRCDIR=src
+INCDIR=include
+OBJDIR=obj_native
+
+SOURCES=$(wildcard $(SRCDIR)/*.c)
+OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
+.PHONY: all clean
+
+all: $(OBJDIR) $(TARGET)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $(TARGET)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $@
+
+clean:
+	rm -rf $(OBJDIR) $(TARGET)
+
+test: $(TARGET)
+	./$(TARGET)
