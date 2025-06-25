@@ -1,5 +1,5 @@
 # Makefile for EZOM Phase 1
-CC = ez80-clang
+CC = ez80-none-elf-clang
 CFLAGS = -Wall -Oz -mllvm -profile-guided-section-prefix=false
 INCLUDES = -Isrc/include
 TARGET = ezom_phase1.bin

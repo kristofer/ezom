@@ -5,6 +5,7 @@
 
 #include "../include/ezom_primitives.h"
 #include "../include/ezom_object.h"
+#include "../include/ezom_memory.h"
 #include <stdio.h>
 #include <string.h>
 

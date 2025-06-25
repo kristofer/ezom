@@ -8,6 +8,7 @@
 #include "../include/ezom_primitives.h"
 #include "../include/ezom_dispatch.h"
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char* argv[]) {
     printf("EZOM Phase 1 - Basic Object System\n");
@@ -115,6 +116,21 @@ void ezom_bootstrap_classes(void) {
         printf("   Object class created at 0x%06X\n", g_object_class);
     }
     
+    // Create Symbol class FIRST (needed for method installation)
+    g_symbol_class = ezom_allocate(sizeof(ezom_class_t));
+    if (g_symbol_class) {
+        ezom_init_object(g_symbol_class, g_object_class, EZOM_TYPE_CLASS);
+        
+        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
+        symbol_class->superclass = g_object_class;
+        symbol_class->method_dict = ezom_create_method_dictionary(4);
+        symbol_class->instance_vars = 0;
+        symbol_class->instance_size = sizeof(ezom_symbol_t);
+        symbol_class->instance_var_count = 0;
+        
+        printf("   Symbol class created at 0x%06X\n", g_symbol_class);
+    }
+
     // Create Integer class
     g_integer_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_integer_class) {
@@ -155,22 +171,19 @@ void ezom_bootstrap_classes(void) {
         printf("   String class created at 0x%06X\n", g_string_class);
     }
     
-    // Create Symbol class
-    g_symbol_class = ezom_allocate(sizeof(ezom_class_t));
-    if (g_symbol_class) {
-        ezom_init_object(g_symbol_class, g_object_class, EZOM_TYPE_CLASS);
-        
-        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
-        symbol_class->superclass = g_object_class;
-        symbol_class->method_dict = ezom_create_method_dictionary(4);
-        symbol_class->instance_vars = 0;
-        symbol_class->instance_size = sizeof(ezom_symbol_t);
-        symbol_class->instance_var_count = 0;
-        
-        printf("   Symbol class created at 0x%06X\n", g_symbol_class);
-    }
-    
     printf("Bootstrap complete!\n");
+}
+
+// Helper function to add a method to a method dictionary
+static void add_method_to_dict(ezom_method_dict_t* dict, const char* selector, uint8_t prim_num, uint8_t arg_count) {
+    if (dict->size < dict->capacity) {
+        ezom_method_t* method = &dict->methods[dict->size];
+        method->selector = ezom_create_symbol(selector, strlen(selector));
+        method->code = prim_num;
+        method->arg_count = arg_count;
+        method->flags = EZOM_METHOD_PRIMITIVE;
+        dict->size++;
+    }
 }
 
 // Install methods in Integer class
@@ -178,24 +191,12 @@ void ezom_install_integer_methods(void) {
     ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
     ezom_method_dict_t* dict = (ezom_method_dict_t*)integer_class->method_dict;
     
-    // Helper function to add a method
-    void add_method(const char* selector, uint8_t prim_num, uint8_t arg_count) {
-        if (dict->size < dict->capacity) {
-            ezom_method_t* method = &dict->methods[dict->size];
-            method->selector = ezom_create_symbol(selector, strlen(selector));
-            method->code = prim_num;
-            method->arg_count = arg_count;
-            method->flags = EZOM_METHOD_PRIMITIVE;
-            dict->size++;
-        }
-    }
-    
     // Install arithmetic methods
-    add_method("+", PRIM_INTEGER_ADD, 1);
-    add_method("-", PRIM_INTEGER_SUB, 1);
-    add_method("*", PRIM_INTEGER_MUL, 1);
-    add_method("=", PRIM_INTEGER_EQ, 1);
-    add_method("println", PRIM_OBJECT_PRINTLN, 0);
+    add_method_to_dict(dict, "+", PRIM_INTEGER_ADD, 1);
+    add_method_to_dict(dict, "-", PRIM_INTEGER_SUB, 1);
+    add_method_to_dict(dict, "*", PRIM_INTEGER_MUL, 1);
+    add_method_to_dict(dict, "=", PRIM_INTEGER_EQ, 1);
+    add_method_to_dict(dict, "println", PRIM_OBJECT_PRINTLN, 0);
     
     printf("      Installed %d methods in Integer\n", dict->size);
 }
@@ -205,21 +206,10 @@ void ezom_install_string_methods(void) {
     ezom_class_t* string_class = (ezom_class_t*)g_string_class;
     ezom_method_dict_t* dict = (ezom_method_dict_t*)string_class->method_dict;
     
-    void add_method(const char* selector, uint8_t prim_num, uint8_t arg_count) {
-        if (dict->size < dict->capacity) {
-            ezom_method_t* method = &dict->methods[dict->size];
-            method->selector = ezom_create_symbol(selector, strlen(selector));
-            method->code = prim_num;
-            method->arg_count = arg_count;
-            method->flags = EZOM_METHOD_PRIMITIVE;
-            dict->size++;
-        }
-    }
-    
     // Install string methods
-    add_method("length", PRIM_STRING_LENGTH, 0);
-    add_method("+", PRIM_STRING_CONCAT, 1);
-    add_method("println", PRIM_OBJECT_PRINTLN, 0);
+    add_method_to_dict(dict, "length", PRIM_STRING_LENGTH, 0);
+    add_method_to_dict(dict, "+", PRIM_STRING_CONCAT, 1);
+    add_method_to_dict(dict, "println", PRIM_OBJECT_PRINTLN, 0);
     
     printf("      Installed %d methods in String\n", dict->size);
 }
