@@ -6,6 +6,20 @@
 #include "../include/ezom_dispatch.h"
 #include "../include/ezom_primitives.h"
 #include <stdio.h>
+#include <string.h>
+
+// Helper function to compare two symbols by content
+bool ezom_symbols_equal(uint24_t sym1, uint24_t sym2) {
+    if (sym1 == sym2) return true;  // Same object
+    if (!sym1 || !sym2) return false;  // One is null
+    
+    ezom_symbol_t* s1 = (ezom_symbol_t*)sym1;
+    ezom_symbol_t* s2 = (ezom_symbol_t*)sym2;
+    
+    if (s1->length != s2->length) return false;
+    
+    return strncmp(s1->data, s2->data, s1->length) == 0;
+}
 
 ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {
     ezom_method_lookup_t result = {0};
@@ -25,7 +39,8 @@ ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {
         
         // Linear search in method dictionary
         for (uint16_t i = 0; i < dict->size; i++) {
-            if (dict->methods[i].selector == selector) {
+            // Compare symbol content, not addresses
+            if (ezom_symbols_equal(dict->methods[i].selector, selector)) {
                 result.method = &dict->methods[i];
                 result.class_ptr = (uint24_t)current_class;
                 result.is_primitive = (dict->methods[i].flags & EZOM_METHOD_PRIMITIVE) != 0;

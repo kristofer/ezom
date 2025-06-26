@@ -11,6 +11,16 @@
 #include <assert.h>
 #include <string.h>
 
+// Forward declaration for enhanced bootstrap function
+void ezom_bootstrap_enhanced_classes(void);
+
+// Function to wait for user input
+void wait_for_continue() {
+    printf("\n--- Press Enter to continue ---");
+    getchar();
+    printf("\n");
+}
+
 static uint16_t tests_passed = 0;
 static uint16_t tests_total = 0;
 
@@ -142,19 +152,30 @@ int main() {
     ezom_init_object_system();
     ezom_init_primitives();
     ezom_bootstrap_classes();
+    ezom_bootstrap_enhanced_classes();
     
     printf("\nRunning tests...\n");
     
-    // Run tests
+    // Basic object tests
+    printf("\n=== BASIC OBJECT TESTS ===\n");
     TEST(memory_allocation);
     TEST(object_creation);
     TEST(string_creation);
     TEST(symbol_creation);
+    wait_for_continue();
+    
+    // Object system tests
+    printf("=== OBJECT SYSTEM TESTS ===\n");
     TEST(object_validation);
+    wait_for_continue();
+    
+    // Method dispatch tests
+    printf("=== METHOD DISPATCH TESTS ===\n");
     TEST(method_lookup);
     TEST(method_dispatch);
     TEST(string_concat);
     TEST(primitive_calls);
+    wait_for_continue();
     
     printf("\n======================\n");
     printf("Results: %d/%d tests passed\n", tests_passed, tests_total);

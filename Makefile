@@ -7,10 +7,10 @@ TEST_TARGET = test_phase1.bin
 
 # Source files
 VM_SOURCES = src/vm/main.c src/vm/memory.c src/vm/object.c src/vm/objects.c \
-             src/vm/primitives.c src/vm/dispatch.c
+             src/vm/primitives.c src/vm/dispatch.c src/vm/bootstrap.c
 
 TEST_SOURCES = test_phase1.c src/vm/memory.c src/vm/object.c src/vm/objects.c \
-               src/vm/primitives.c src/vm/dispatch.c
+               src/vm/primitives.c src/vm/dispatch.c src/vm/bootstrap.c
 
 ALL_OBJECTS = $(VM_SOURCES:.c=.o)
 TEST_OBJECTS = $(TEST_SOURCES:.c=.o)

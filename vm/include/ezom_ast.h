@@ -6,6 +6,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef enum {
     AST_CLASS_DEF,

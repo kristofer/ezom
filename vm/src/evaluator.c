@@ -28,12 +28,12 @@ static ezom_eval_result_t ezom_evaluate_arguments_internal(ezom_ast_node_t* arg_
 
 void ezom_evaluator_init(void) {
     printf("EZOM: Initializing evaluator...\n");
-    g_global_count = 0;
     
-    // Initialize some basic globals
-    ezom_set_global("nil", g_nil);
-    ezom_set_global("true", g_true);
-    ezom_set_global("false", g_false);
+    // Initialize global count to zero and clear the array
+    g_global_count = 0;
+    memset(g_globals, 0, sizeof(g_globals));
+    
+    printf("   Evaluator initialization complete (simplified).\n");
 }
 
 void ezom_evaluator_cleanup(void) {
@@ -45,9 +45,16 @@ void ezom_evaluator_cleanup(void) {
 
 // Main evaluation entry point
 ezom_eval_result_t ezom_evaluate_ast(ezom_ast_node_t* node, uint24_t context) {
+    printf("   Debug: ezom_evaluate_ast called with node=0x%06lX, context=0x%06lX\n", 
+           (unsigned long)node, context);
+    
     if (!node) {
+        printf("   Debug: node is NULL, returning g_nil\n");
         return ezom_make_result(g_nil);
     }
+    
+    printf("   Debug: accessing node->type...\n");
+    printf("   Debug: node->type = %d\n", node->type);
     
     switch (node->type) {
         case AST_CLASS_DEF:
@@ -154,10 +161,21 @@ ezom_eval_result_t ezom_evaluate_message_send(ezom_ast_node_t* node, uint24_t co
 
 // Literal evaluation
 ezom_eval_result_t ezom_evaluate_literal(ezom_ast_node_t* node, uint24_t context) {
-    if (!node || node->type != AST_LITERAL) {
+    printf("   Debug: evaluate_literal called with node=0x%06lX\n", (unsigned long)node);
+    
+    if (!node) {
+        printf("   Debug: node is NULL!\n");
         return ezom_make_error_result("Invalid literal node");
     }
     
+    printf("   Debug: node->type = %d (should be %d for AST_LITERAL)\n", node->type, AST_LITERAL);
+    
+    if (node->type != AST_LITERAL) {
+        printf("   Debug: node type mismatch!\n");
+        return ezom_make_error_result("Invalid literal node");
+    }
+    
+    printf("   Debug: accessing node->data.literal.type...\n");
     switch (node->data.literal.type) {
         case LITERAL_INTEGER:
             {
@@ -357,22 +375,40 @@ uint24_t ezom_lookup_global(const char* name) {
 }
 
 bool ezom_set_global(const char* name, uint24_t value) {
+    printf("     Setting global: %s\n", name);
+    printf("     Current global count: %d\n", g_global_count);
+    
     // Check if already exists
     for (uint16_t i = 0; i < g_global_count; i++) {
+        printf("     Checking existing global %d\n", i);
+        if (!g_globals[i].name) {
+            printf("     ERROR: global %d has NULL name!\n", i);
+            continue;
+        }
         if (strcmp(g_globals[i].name, name) == 0) {
+            printf("     Updated existing\n");
             g_globals[i].value = value;
             return true;
         }
     }
     
+    printf("     After loop check\n");
+    
     // Add new global
     if (g_global_count < MAX_GLOBALS) {
+        printf("     Adding new global\n");
         g_globals[g_global_count].name = strdup(name);
+        if (!g_globals[g_global_count].name) {
+            printf("     ERROR: strdup failed!\n");
+            return false;
+        }
         g_globals[g_global_count].value = value;
         g_global_count++;
+        printf("     Success\n");
         return true;
     }
     
+    printf("     ERROR: Too many globals!\n");
     return false;
 }
 

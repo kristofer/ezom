@@ -6,6 +6,17 @@
 #pragma once
 #include <stdint.h>
 
+// ez80 24-bit address type support for AgonDev toolchain
+#ifndef uint24_t
+#ifdef __ez80__
+// For AgonDev ez80 toolchain - use built-in 24-bit type
+#define uint24_t unsigned long
+#else
+// For other platforms (testing)
+typedef uint32_t uint24_t;
+#endif
+#endif
+
 #define EZOM_HEAP_START     0x042000    // Start of object heap
 #define EZOM_HEAP_SIZE      0x0E000     // 56KB heap space
 #define EZOM_HEAP_END       (EZOM_HEAP_START + EZOM_HEAP_SIZE)

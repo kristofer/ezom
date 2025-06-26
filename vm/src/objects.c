@@ -173,13 +173,13 @@ uint24_t ezom_object_to_string(uint24_t obj_ptr) {
             
         case EZOM_TYPE_BLOCK: {
             char buffer[32];
-            sprintf(buffer, "Block@0x%06X", obj_ptr);
+            sprintf(buffer, "Block@0x%06lX", obj_ptr);
             return ezom_create_string(buffer, strlen(buffer));
         }
             
         default: {
             char buffer[32];
-            sprintf(buffer, "Object@0x%06X", obj_ptr);
+            sprintf(buffer, "Object@0x%06lX", obj_ptr);
             return ezom_create_string(buffer, strlen(buffer));
         }
     }

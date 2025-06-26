@@ -7,6 +7,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// ez80 24-bit address type support for AgonDev toolchain
+#ifndef uint24_t
+#ifdef __ez80__
+// For AgonDev ez80 toolchain - use built-in 24-bit type
+#define uint24_t unsigned long
+#else
+// For other platforms (testing)
+typedef uint32_t uint24_t;
+#endif
+#endif
+
 typedef uint24_t (*ezom_primitive_fn)(uint24_t receiver, uint24_t* args, uint8_t arg_count);
 
 // Primitive numbers

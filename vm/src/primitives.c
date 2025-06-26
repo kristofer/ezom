@@ -135,10 +135,10 @@ uint24_t prim_object_class(uint24_t receiver, uint24_t* args, uint8_t arg_count)
 
 // Object>>=
 uint24_t prim_object_equals(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_false;
     
     // Simple identity comparison for now
-    return (receiver == args[0]) ? 1 : 0; // Return 1 for true, 0 for false
+    return (receiver == args[0]) ? g_true : g_false;
 }
 
 // Object>>hash
@@ -173,16 +173,15 @@ uint24_t prim_object_not_nil(uint24_t receiver, uint24_t* args, uint8_t arg_coun
 
 // Integer>>+
 uint24_t prim_integer_add(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_nil;
     
     ezom_integer_t* recv = (ezom_integer_t*)receiver;
     ezom_integer_t* arg = (ezom_integer_t*)args[0];
     
     // Type check
-    if ((recv->header.flags & 0xF0) != EZOM_TYPE_INTEGER ||
-        (arg->header.flags & 0xF0) != EZOM_TYPE_INTEGER) {
+    if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer addition\n");
-        return 0;
+        return g_nil;
     }
     
     return ezom_create_integer(recv->value + arg->value);
@@ -190,15 +189,14 @@ uint24_t prim_integer_add(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 
 // Integer>>-
 uint24_t prim_integer_sub(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_nil;
     
     ezom_integer_t* recv = (ezom_integer_t*)receiver;
     ezom_integer_t* arg = (ezom_integer_t*)args[0];
     
-    if ((recv->header.flags & 0xF0) != EZOM_TYPE_INTEGER ||
-        (arg->header.flags & 0xF0) != EZOM_TYPE_INTEGER) {
+    if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer subtraction\n");
-        return 0;
+        return g_nil;
     }
     
     return ezom_create_integer(recv->value - arg->value);
@@ -206,15 +204,14 @@ uint24_t prim_integer_sub(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 
 // Integer>>*
 uint24_t prim_integer_mul(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_nil;
     
     ezom_integer_t* recv = (ezom_integer_t*)receiver;
     ezom_integer_t* arg = (ezom_integer_t*)args[0];
     
-    if ((recv->header.flags & 0xF0) != EZOM_TYPE_INTEGER ||
-        (arg->header.flags & 0xF0) != EZOM_TYPE_INTEGER) {
+    if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer multiplication\n");
-        return 0;
+        return g_nil;
     }
     
     return ezom_create_integer(recv->value * arg->value);
@@ -222,39 +219,39 @@ uint24_t prim_integer_mul(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 
 // Integer>>/
 uint24_t prim_integer_div(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_nil;
     
     ezom_integer_t* recv = (ezom_integer_t*)receiver;
     ezom_integer_t* arg = (ezom_integer_t*)args[0];
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer division\n");
-        return 0;
+        return g_nil;
     }
     
     if (arg->value == 0) {
         printf("Division by zero\n");
-        return 0;
+        return g_nil;
     }
     
     return ezom_create_integer(recv->value / arg->value);
 }
 
-// Integer>>mod (modulo)
+// Integer>>\\  (modulo)
 uint24_t prim_integer_mod(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_nil;
     
     ezom_integer_t* recv = (ezom_integer_t*)receiver;
     ezom_integer_t* arg = (ezom_integer_t*)args[0];
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer modulo\n");
-        return 0;
+        return g_nil;
     }
     
     if (arg->value == 0) {
         printf("Division by zero in modulo\n");
-        return 0;
+        return g_nil;
     }
     
     return ezom_create_integer(recv->value % arg->value);
@@ -345,10 +342,11 @@ uint24_t prim_integer_neq(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 }
 
 // Integer>>asString
+// Integer>>asString
 uint24_t prim_integer_as_string(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (!ezom_is_integer(receiver)) {
         printf("Type error: asString sent to non-integer\n");
-        return 0;
+        return g_nil;
     }
     
     ezom_integer_t* int_obj = (ezom_integer_t*)receiver;
@@ -361,7 +359,7 @@ uint24_t prim_integer_as_string(uint24_t receiver, uint24_t* args, uint8_t arg_c
 uint24_t prim_integer_abs(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (!ezom_is_integer(receiver)) {
         printf("Type error: abs sent to non-integer\n");
-        return 0;
+        return g_nil;
     }
     
     ezom_integer_t* int_obj = (ezom_integer_t*)receiver;
@@ -415,12 +413,13 @@ uint24_t prim_integer_times_repeat(uint24_t receiver, uint24_t* args, uint8_t ar
 }
 
 // String>>length
+// String>>length
 uint24_t prim_string_length(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     ezom_string_t* str = (ezom_string_t*)receiver;
     
-    if ((str->header.flags & 0xF0) != EZOM_TYPE_STRING) {
+    if (!ezom_is_string(receiver)) {
         printf("Type error: length sent to non-string\n");
-        return 0;
+        return g_nil;
     }
     
     return ezom_create_integer(str->length);
@@ -428,21 +427,20 @@ uint24_t prim_string_length(uint24_t receiver, uint24_t* args, uint8_t arg_count
 
 // String>>+
 uint24_t prim_string_concat(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1) return 0;
+    if (arg_count != 1) return g_nil;
     
     ezom_string_t* str1 = (ezom_string_t*)receiver;
     ezom_string_t* str2 = (ezom_string_t*)args[0];
     
-    if ((str1->header.flags & 0xF0) != EZOM_TYPE_STRING ||
-        (str2->header.flags & 0xF0) != EZOM_TYPE_STRING) {
+    if (!ezom_is_string(receiver) || !ezom_is_string(args[0])) {
         printf("Type error in string concatenation\n");
-        return 0;
+        return g_nil;
     }
     
     uint16_t new_length = str1->length + str2->length;
     uint24_t result = ezom_allocate(sizeof(ezom_string_t) + new_length + 1);
     
-    if (!result) return 0;
+    if (!result) return g_nil;
     
     ezom_init_object(result, g_string_class, EZOM_TYPE_STRING);
     
