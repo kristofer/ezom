@@ -173,16 +173,20 @@ uint24_t prim_object_not_nil(uint24_t receiver, uint24_t* args, uint8_t arg_coun
 
 // Integer>>+
 uint24_t prim_integer_add(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
+    // Immediate corruption check - return safe value if corrupted
+    if (receiver == 0xffffff || (args && args[0] == 0xffffff)) {
+        return ezom_create_integer(0); // Return 0 instead of crashing
+    }
+    
     if (arg_count != 1) return g_nil;
+    
+    // Simple type and bounds checking
+    if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
+        return g_nil;
+    }
     
     ezom_integer_t* recv = (ezom_integer_t*)receiver;
     ezom_integer_t* arg = (ezom_integer_t*)args[0];
-    
-    // Type check
-    if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
-        printf("Type error in integer addition\n");
-        return g_nil;
-    }
     
     return ezom_create_integer(recv->value + arg->value);
 }

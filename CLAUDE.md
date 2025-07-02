@@ -124,3 +124,43 @@ Phase3.md             # Phase 3 memory management spec
 ```
 
 The implementation has been split into modular files following the structure outlined in the original consolidated code comments.
+
+## Known Issues and Resolutions
+
+### IY=0xffffff Crash Issue (July 2, 2025)
+**Status:** 🔍 ROOT CAUSE IDENTIFIED - Bootstrap Issue
+
+**Problem:** CPU crashes with `memory 0x1000005 out of bounds` during VM initialization.
+- **Assembly:** `LD C, (IY+7)` instruction fails when `IY=0xffffff`
+- **Actual Location:** Bootstrap phase in `ezom_bootstrap_classes()` function
+- **Precise Crash Point:** After Object class method dictionary creation, during Symbol class creation
+
+**Root Cause Analysis (Using File-Based Debug Logging):**
+1. **Crash occurs during bootstrap, NOT during integer addition**
+2. **Debug log shows:** Program successfully creates Object class and method dictionary
+3. **Crash location:** Between lines 17-18 in ezom.log (after method dictionary, before Symbol class)
+4. **Issue:** `ezom_create_method_dictionary()` calls `ezom_init_object(ptr, g_object_class, EZOM_TYPE_OBJECT)` 
+   when `g_object_class` may not be fully initialized
+
+**Critical Discovery:** The original crash happens much earlier than expected - during VM bootstrap, not during method dispatch.
+
+**Solution Strategy:**
+1. **Fix Bootstrap Order:** Ensure `g_object_class` is fully operational before creating method dictionaries
+2. **Alternative:** Create method dictionaries with NULL class initially, set class later
+3. **Validation:** Add corruption checks in `ezom_init_object()` 
+4. **Logging System:** File-based debug logging to `/Users/kristofer/fab-agon-emulator-v0.9.96-macos/sdcard/ezom.log`
+
+**Debug Tools Implemented:**
+- File-based logging system in `src/dispatch.c` with `ezom_log()` function
+- Detailed bootstrap tracing in `src/bootstrap.c`
+- Emergency bypass (now unnecessary once bootstrap is fixed)
+
+**Next Steps:**
+1. Fix the bootstrap class creation order issue
+2. Remove emergency bypass once root cause is resolved
+3. Verify full VM functionality after bootstrap fix
+
+**Files:** 
+- `src/bootstrap.c`: Bootstrap function with detailed logging
+- `src/dispatch.c`: File logging system implementation
+- `PRIMITIVE_CRASH_RESOLUTION_REPORT.md`: Historical analysis (pre-root cause discovery)

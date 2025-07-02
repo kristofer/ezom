@@ -24,10 +24,25 @@ void ezom_init_object_system(void) {
 }
 
 void ezom_init_object(uint24_t obj_ptr, uint24_t class_ptr, uint8_t type) {
+    if (!obj_ptr) return; // Safety check
+    
     ezom_object_t* obj = (ezom_object_t*)obj_ptr;
-    obj->class_ptr = class_ptr;
+    obj->class_ptr = class_ptr; // Allow 0 during bootstrap
     obj->hash = ezom_compute_hash(obj_ptr);
     obj->flags = type;
+}
+
+// Bootstrap-safe object initialization
+void ezom_init_object_bootstrap(uint24_t obj_ptr, uint24_t class_ptr, uint8_t type) {
+    if (!obj_ptr) return;
+    
+    ezom_object_t* obj = (ezom_object_t*)obj_ptr;
+    obj->class_ptr = class_ptr;
+    obj->hash = class_ptr ? ezom_compute_hash(obj_ptr) : (uint16_t)(obj_ptr & 0xFFFF);
+    obj->flags = type;
+    
+    printf("DEBUG: Initialized object at 0x%06X with class 0x%06X, type 0x%02X\n", 
+           obj_ptr, class_ptr, type);
 }
 
 uint16_t ezom_compute_hash(uint24_t obj_ptr) {

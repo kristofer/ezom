@@ -7,10 +7,11 @@ SRCDIR=src
 INCDIR=include
 OBJDIR=obj_native
 
-SOURCES=$(wildcard $(SRCDIR)/*.c)
+# Exclude main.c for native builds, use debug_main.c instead
+SOURCES=$(filter-out $(SRCDIR)/main.c, $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
-.PHONY: all clean
+.PHONY: all clean test_phase2_complete
 
 all: $(OBJDIR) $(TARGET)
 
@@ -23,8 +24,11 @@ $(TARGET): $(OBJECTS)
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -I$(INCDIR) -c $< -o $@
 
+test_phase2_complete: $(filter-out $(OBJDIR)/main.o $(OBJDIR)/debug_main.o, $(OBJECTS))
+	$(CC) $(CFLAGS) -I$(INCDIR) $(filter-out $(OBJDIR)/main.o $(OBJDIR)/debug_main.o, $(OBJECTS)) test_phase2_complete.c -o test_phase2_complete
+
 clean:
-	rm -rf $(OBJDIR) $(TARGET)
+	rm -rf $(OBJDIR) $(TARGET) test_phase2_complete
 
 test: $(TARGET)
 	./$(TARGET)

@@ -41,7 +41,7 @@ void ezom_init_context_system(void) {
         block_class->instance_size = sizeof(ezom_block_t);
         block_class->instance_var_count = 0;
         
-        printf("   Block class created at 0x%06X\n", g_block_class);
+        printf("   Block class created successfully\n");
     }
     
     // Create Context class
@@ -56,8 +56,9 @@ void ezom_init_context_system(void) {
         context_class->instance_size = sizeof(ezom_context_t);
         context_class->instance_var_count = 0;
         
-        printf("   Context class created at 0x%06X\n", g_context_class);
+        printf("   Context class created successfully\n");
     }
+    printf("EZOM: Context system initialization complete.\n");
 }
 
 uint24_t ezom_create_extended_context(uint24_t outer_context, uint24_t method, uint24_t receiver, uint8_t local_count) {
@@ -208,7 +209,8 @@ uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_cou
 
 void ezom_init_boolean_objects(void) {
     // Boolean objects are now created in bootstrap.c
-    printf("   Boolean objects already initialized by bootstrap\n");
+    // This function is kept for compatibility but does nothing
+    return;
 }
 
 uint24_t ezom_create_boolean(bool value) {

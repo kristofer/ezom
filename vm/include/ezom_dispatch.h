@@ -22,6 +22,9 @@ typedef struct ezom_method_lookup {
     bool           is_primitive; // True if primitive method
 } ezom_method_lookup_t;
 
+// Symbol comparison helper
+bool ezom_symbols_equal(uint24_t sym1, uint24_t sym2);
+
 // Message dispatch functions
 ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector);
 uint24_t ezom_send_message(ezom_message_t* msg);

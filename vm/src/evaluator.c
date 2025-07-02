@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Global symbol table for variables (simplified)
-#define MAX_GLOBALS 256
+// Global symbol table for variables (simplified) - reduced size for ez80
+#define MAX_GLOBALS 16
 static struct {
     char* name;
     uint24_t value;
@@ -29,11 +29,10 @@ static ezom_eval_result_t ezom_evaluate_arguments_internal(ezom_ast_node_t* arg_
 void ezom_evaluator_init(void) {
     printf("EZOM: Initializing evaluator...\n");
     
-    // Initialize global count to zero and clear the array
+    // Initialize with smaller array size
     g_global_count = 0;
-    memset(g_globals, 0, sizeof(g_globals));
     
-    printf("   Evaluator initialization complete (simplified).\n");
+    printf("   Evaluator initialization complete.\n");
 }
 
 void ezom_evaluator_cleanup(void) {

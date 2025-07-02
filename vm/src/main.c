@@ -21,33 +21,62 @@ void wait_for_continue() {
     printf("\n");
 }
 
+// Forward declare logging functions
+extern void ezom_log_init();
+extern void ezom_log_close();
+extern void ezom_log(const char* format, ...);
+
 int main(int argc, char* argv[]) {
+    // Initialize logging first
+    ezom_log_init();
+    ezom_log("main() started - logging initialized\n");
+    
     printf("EZOM Phase 1.5 - Enhanced SOM Compatibility\n");
     printf("==========================================\n");
+    ezom_log("main() - printed header\n");
     
     // CRITICAL: Initialize g_nil early to prevent crashes
     // This will be replaced with proper object later
     g_nil = 1; // Non-zero temporary value
     
+    printf("DEBUG: Starting VM initialization...\n");
+    ezom_log("DEBUG: Starting VM initialization...\n");
+    
     // Initialize VM components
+    printf("DEBUG: Initializing memory...\n");
+    ezom_log("DEBUG: Initializing memory...\n");
     ezom_init_memory();
+    printf("DEBUG: Initializing object system...\n");
+    ezom_log("DEBUG: Initializing object system...\n");
     ezom_init_object_system();
+    printf("DEBUG: Initializing primitives...\n");
+    ezom_log("DEBUG: Initializing primitives...\n");
     ezom_init_primitives();
     
     // Bootstrap basic classes first (creates g_object_class)
+    printf("DEBUG: Bootstrapping classes...\n");
+    ezom_log("DEBUG: Bootstrapping classes...\n");
     ezom_bootstrap_classes();
     
     // Bootstrap enhanced classes for SOM compatibility
     // This creates g_nil, g_true, g_false after g_object_class exists
+    printf("DEBUG: Bootstrapping enhanced classes...\n");
+    ezom_log("DEBUG: Bootstrapping enhanced classes...\n");
     ezom_bootstrap_enhanced_classes();
     
     // Initialize Phase 2 systems
+    printf("DEBUG: Initializing context system...\n");
+    ezom_log("DEBUG: Initializing context system...\n");
     ezom_init_context_system();
+    printf("DEBUG: Initializing boolean objects...\n");
+    ezom_log("DEBUG: Initializing boolean objects...\n");
     ezom_init_boolean_objects();
-    ezom_evaluator_init();
+    // ezom_evaluator_init(); // Temporarily disabled to isolate crash
     
     // Print memory stats
+    printf("EZOM: About to print memory stats...\n");
     ezom_memory_stats();
+    printf("EZOM: Memory stats printed successfully.\n");
     
     // Phase 1 Test: Create and manipulate objects
     printf("\nPhase 1 Tests:\n");
@@ -80,16 +109,43 @@ int main(int argc, char* argv[]) {
         printf("3. Testing integer arithmetic...\n");
         
         // Create symbols for method selectors
+        printf("   Creating '+' symbol...\n");
         uint24_t plus_selector = ezom_create_symbol("+", 1);
+        printf("   '+' symbol created\n");
+        printf("   Creating 'println' symbol...\n");
         uint24_t println_selector = ezom_create_symbol("println", 7);
+        printf("   'println' symbol created\n");
         
         if (plus_selector) {
             // Debug: Check if method exists
-            printf("   Debug: Looking up '+' method for Integer class...\n");
-            ezom_method_lookup_t lookup = ezom_lookup_method(g_integer_class, plus_selector);
+            if (!g_integer_class) {
+                printf("   ERROR: g_integer_class is NULL!\n");
+            } else if (!plus_selector) {
+                printf("   ERROR: plus_selector is NULL!\n");
+            } else {
+                printf("   plus_selector and g_integer_class are valid\n");
+                ezom_method_lookup_t lookup = ezom_lookup_method(g_integer_class, plus_selector);
+                printf("   method lookup completed\n");
+                printf("   checking result...\n");
             if (lookup.method != NULL) {
-                printf("   Debug: Found '+' method, is_primitive: %d, code: %d\n", 
-                       lookup.is_primitive, lookup.method->code);
+                printf("   method found\n");
+                
+                // Debug the method structure itself before accessing it
+                printf("   method pointer: 0x%06lX\n", (unsigned long)lookup.method);
+                printf("   is_primitive flag: %d\n", lookup.is_primitive);
+                ezom_log("   method pointer: 0x%06lX\n", (unsigned long)lookup.method);
+                ezom_log("   is_primitive flag: %d\n", lookup.is_primitive);
+                
+                // Check if method pointer is corrupted
+                if ((unsigned long)lookup.method == 0xffffff) {
+                    printf("   ERROR: Method pointer is corrupted (0xffffff)!\n");
+                    ezom_log("   ERROR: Method pointer is corrupted (0xffffff)!\n");
+                } else {
+                    printf("   Debug: Found '+' method, is_primitive: %d, code: %ld\n", 
+                           lookup.is_primitive, (unsigned long)lookup.method->code);
+                    ezom_log("   Debug: Found '+' method, is_primitive: %d, code: %ld\n", 
+                             lookup.is_primitive, (unsigned long)lookup.method->code);
+                }
             } else {
                 printf("   Debug: '+' method NOT FOUND in Integer class\n");
                 
@@ -105,6 +161,20 @@ int main(int argc, char* argv[]) {
             }
             
             // Test: 42 + 8
+            printf("DEBUG: About to call ezom_send_binary_message with:\n");
+            printf("  int1=0x%06X, plus_selector=0x%06X, int2=0x%06X\n", int1, plus_selector, int2);
+            ezom_log("DEBUG: About to call ezom_send_binary_message with:\n");
+            ezom_log("  int1=0x%06lX, plus_selector=0x%06lX, int2=0x%06lX\n", (unsigned long)int1, (unsigned long)plus_selector, (unsigned long)int2);
+            
+            // Check for corrupted objects
+            if (int1 == 0xffffff || int2 == 0xffffff || plus_selector == 0xffffff) {
+                printf("ERROR: Corrupted object detected before addition!\n");
+                printf("  int1=0x%06X, int2=0x%06X, plus_selector=0x%06X\n", int1, int2, plus_selector);
+                ezom_log("ERROR: Corrupted object detected before addition!\n");
+                ezom_log("  int1=0x%06X, int2=0x%06X, plus_selector=0x%06X\n", int1, int2, plus_selector);
+                return 1;
+            }
+            
             uint24_t result = ezom_send_binary_message(int1, plus_selector, int2);
             if (result) {
                 ezom_integer_t* res = (ezom_integer_t*)result;
@@ -116,6 +186,7 @@ int main(int argc, char* argv[]) {
                     ezom_send_unary_message(result, println_selector);
                 }
             }
+            } // Close the else block for null checks
         }
     }
     
@@ -296,6 +367,9 @@ int main(int argc, char* argv[]) {
     printf("  ✓ Object primitives (isNil, notNil)\n");
     wait_for_continue();
     
+    // Close the log file before exit
+    ezom_log_close();
+    
     // Phase 2 Tests
     printf("\n===============================\n");
     printf("Phase 2 Tests\n");
@@ -365,88 +439,8 @@ int main(int argc, char* argv[]) {
     printf("\nThe EZOM VM now supports all Phase 2 requirements!\n");
     printf("Ready for Phase 3 (Memory Management) implementation.\n");
     
+    // Final log close
+    ezom_log_close();
+    
     return 0;
-}
-
-// Bootstrap basic classes (minimal implementation for Phase 1)
-void ezom_bootstrap_classes(void) {
-    printf("Bootstrapping basic classes...\n");
-    
-    // Create Object class (bootstrap - self-referential)
-    g_object_class = ezom_allocate(sizeof(ezom_class_t));
-    if (g_object_class) {
-        ezom_init_object(g_object_class, g_object_class, EZOM_TYPE_CLASS);
-        
-        ezom_class_t* object_class = (ezom_class_t*)g_object_class;
-        object_class->superclass = 0; // No superclass
-        object_class->method_dict = ezom_create_method_dictionary(8);
-        object_class->instance_vars = 0;
-        object_class->instance_size = sizeof(ezom_object_t);
-        object_class->instance_var_count = 0;
-        
-        printf("   Object class created at 0x%06X\n", g_object_class);
-    }
-    
-    // Create Symbol class FIRST (needed for method installation)
-    g_symbol_class = ezom_allocate(sizeof(ezom_class_t));
-    if (g_symbol_class) {
-        ezom_init_object(g_symbol_class, g_object_class, EZOM_TYPE_CLASS);
-        
-        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
-        symbol_class->superclass = g_object_class;
-        symbol_class->method_dict = ezom_create_method_dictionary(4);
-        symbol_class->instance_vars = 0;
-        symbol_class->instance_size = sizeof(ezom_symbol_t);
-        symbol_class->instance_var_count = 0;
-        
-        printf("   Symbol class created at 0x%06X\n", g_symbol_class);
-    }
-
-    // Create Integer class
-    g_integer_class = ezom_allocate(sizeof(ezom_class_t));
-    if (g_integer_class) {
-        ezom_init_object(g_integer_class, g_object_class, EZOM_TYPE_CLASS);
-        
-        ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
-        integer_class->superclass = g_object_class;
-        integer_class->method_dict = ezom_create_method_dictionary(16);
-        integer_class->instance_vars = 0;
-        integer_class->instance_size = sizeof(ezom_integer_t);
-        integer_class->instance_var_count = 0;
-        
-        // Methods will be installed in enhanced bootstrap
-        
-        printf("   Integer class created at 0x%06X\n", g_integer_class);
-    }
-    
-    // Create String class
-    g_string_class = ezom_allocate(sizeof(ezom_class_t));
-    if (g_string_class) {
-        ezom_init_object(g_string_class, g_object_class, EZOM_TYPE_CLASS);
-        
-        ezom_class_t* string_class = (ezom_class_t*)g_string_class;
-        string_class->superclass = g_object_class;
-        string_class->method_dict = ezom_create_method_dictionary(8);
-        string_class->instance_vars = 0;
-        string_class->instance_size = sizeof(ezom_string_t); // Variable size
-        string_class->instance_var_count = 0;
-        
-        // Methods will be installed in enhanced bootstrap
-        
-        printf("   String class created at 0x%06X\n", g_string_class);
-    }
-    
-    printf("Bootstrap complete!\n");
-}
-
-// Helper function to add a method to a method dictionary
-static void add_method_to_dict(ezom_method_dict_t* dict, const char* selector, uint8_t prim_num, uint8_t arg_count) {
-    if (dict->size < dict->capacity) {
-        ezom_method_t* method = &dict->methods[dict->size];
-        method->selector = ezom_create_symbol(selector, strlen(selector));
-        method->code = prim_num;
-        method->arg_count = arg_count;
-        method->flags = EZOM_METHOD_PRIMITIVE;
-        dict->size++;
-    }
 }

@@ -10,14 +10,34 @@
 
 // Create integer object
 uint24_t ezom_create_integer(int16_t value) {
+    printf("DEBUG: ezom_create_integer called with value=%d\n", value);
+    printf("DEBUG: g_integer_class=0x%06X\n", g_integer_class);
+    
     uint24_t ptr = ezom_allocate(sizeof(ezom_integer_t));
+    printf("DEBUG: ezom_allocate returned ptr=0x%06X\n", ptr);
     if (!ptr) return 0;
     
-    ezom_init_object(ptr, g_integer_class, EZOM_TYPE_INTEGER);
+    printf("DEBUG: About to call ezom_init_object...\n");
+    
+    // Bootstrap safety: use Object class if Integer class not ready
+    uint24_t class_ptr = g_integer_class ? g_integer_class : g_object_class;
+    if (!class_ptr) {
+        // Ultra-bootstrap: create minimal object without class
+        ezom_object_t* header = (ezom_object_t*)ptr;
+        header->class_ptr = 0; // Bootstrap: no class initially
+        header->hash = (uint16_t)(value & 0xFFFF);
+        header->flags = EZOM_TYPE_INTEGER;
+        printf("DEBUG: Ultra-bootstrap mode - no class available\n");
+    } else {
+        ezom_init_object(ptr, class_ptr, EZOM_TYPE_INTEGER);
+        printf("DEBUG: ezom_init_object completed with class=0x%06X\n", class_ptr);
+    }
     
     ezom_integer_t* obj = (ezom_integer_t*)ptr;
+    printf("DEBUG: Setting obj->value = %d\n", value);
     obj->value = value;
     
+    printf("DEBUG: ezom_create_integer returning ptr=0x%06X\n", ptr);
     return ptr;
 }
 
@@ -26,7 +46,17 @@ uint24_t ezom_create_string(const char* data, uint16_t length) {
     uint24_t ptr = ezom_allocate(sizeof(ezom_string_t) + length + 1);
     if (!ptr) return 0;
     
-    ezom_init_object(ptr, g_string_class, EZOM_TYPE_STRING);
+    // Bootstrap safety: use Object class if String class not ready
+    uint24_t class_ptr = g_string_class ? g_string_class : g_object_class;
+    if (class_ptr) {
+        ezom_init_object(ptr, class_ptr, EZOM_TYPE_STRING);
+    } else {
+        // Ultra-bootstrap: create minimal object without class
+        ezom_object_t* header = (ezom_object_t*)ptr;
+        header->class_ptr = 0;
+        header->hash = ezom_compute_hash(ptr);
+        header->flags = EZOM_TYPE_STRING;
+    }
     
     ezom_string_t* obj = (ezom_string_t*)ptr;
     obj->length = length;
@@ -63,7 +93,16 @@ uint24_t ezom_create_method_dictionary(uint16_t initial_capacity) {
     uint24_t ptr = ezom_allocate(size);
     if (!ptr) return 0;
     
-    ezom_init_object(ptr, g_object_class, EZOM_TYPE_OBJECT);
+    // Bootstrap safety: only initialize if Object class exists
+    if (g_object_class) {
+        ezom_init_object(ptr, g_object_class, EZOM_TYPE_OBJECT);
+    } else {
+        // Ultra-bootstrap: create minimal object
+        ezom_object_t* header = (ezom_object_t*)ptr;
+        header->class_ptr = 0;
+        header->hash = ezom_compute_hash(ptr);
+        header->flags = EZOM_TYPE_OBJECT;
+    }
     
     ezom_method_dict_t* dict = (ezom_method_dict_t*)ptr;
     dict->size = 0;

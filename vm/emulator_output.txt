@@ -1,0 +1,4 @@
+Warning: unused arguments left: ["bin/ezom_phase1.bin"].
+Error loading VDP firmware: "./firmware/vdp_platform.so", DlOpen { desc: "dlopen(./firmware/vdp_platform.so, 0x0005): tried: \'./firmware/vdp_platform.so\' (no such file), \'/System/Volumes/Preboot/Cryptexes/OS./firmware/vdp_platform.so\' (no such file), \'/usr/lib/./firmware/vdp_platform.so\' (no such file, not in dyld cache), \'./firmware/vdp_platform.so\' (no such file)" }
+Error loading VDP firmware: "./firmware/vdp_console8.so", DlOpen { desc: "dlopen(./firmware/vdp_console8.so, 0x0005): tried: \'./firmware/vdp_console8.so\' (no such file), \'/System/Volumes/Preboot/Cryptexes/OS./firmware/vdp_console8.so\' (no such file), \'/usr/lib/./firmware/vdp_console8.so\' (no such file, not in dyld cache), \'./firmware/vdp_console8.so\' (no such file)" }
+Fatal error: Could not find any VDP firmware.

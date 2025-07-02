@@ -10,11 +10,15 @@
 // ez80 24-bit address type support for AgonDev toolchain
 #ifndef uint24_t
 #ifdef __ez80__
-// For AgonDev ez80 toolchain - use built-in 24-bit type
-#define uint24_t unsigned long
+// For AgonDev ez80 toolchain - use built-in 24-bit type with masking
+typedef unsigned long uint24_raw_t;
+#define uint24_t uint24_raw_t
+// Macro to ensure 24-bit values are properly masked
+#define UINT24_MASK(x) ((x) & 0xFFFFFFUL)
 #else
 // For other platforms (testing)
 typedef uint32_t uint24_t;
+#define UINT24_MASK(x) ((x) & 0xFFFFFFUL)
 #endif
 #endif
 
