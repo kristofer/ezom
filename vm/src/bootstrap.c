@@ -199,6 +199,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     printf("Phase 2: Completing class hierarchy...\n");
     
     // Create Symbol class first (needed for method dictionaries)
+    g_symbol_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_symbol_class) {
         ezom_init_object(g_symbol_class, g_object_class, EZOM_TYPE_CLASS);
         ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
@@ -348,12 +349,33 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
 // PHASE 3: Create method dictionaries and install methods
 static void ezom_bootstrap_phase3_methods(void) {
     printf("Phase 3: Creating method dictionaries...\n");
+    ezom_log("Phase 3: Creating method dictionaries...\n");
+    
+    printf("   g_object_class = 0x%06lX\n", (unsigned long)g_object_class);
+    printf("   g_symbol_class = 0x%06lX\n", (unsigned long)g_symbol_class);
+    ezom_log("   g_object_class = 0x%06lX\n", (unsigned long)g_object_class);
+    ezom_log("   g_symbol_class = 0x%06lX\n", (unsigned long)g_symbol_class);
     
     // Now we can safely create method dictionaries since Symbol class exists
     if (g_object_class && g_symbol_class) {
+        printf("   Condition passed - creating method dictionaries...\n");
+        ezom_log("   Condition passed - creating method dictionaries...\n");
         ezom_class_t* object_class = (ezom_class_t*)g_object_class;
         object_class->method_dict = ezom_create_method_dictionary(8);
-        printf("   Object class method dictionary created\n");
+        printf("   Object class method dictionary created at 0x%06lX\n", (unsigned long)object_class->method_dict);
+        ezom_log("   Object class method dictionary created at 0x%06lX\n", (unsigned long)object_class->method_dict);
+    } else {
+        printf("   ERROR: Cannot create method dictionaries - missing classes!\n");
+        ezom_log("   ERROR: Cannot create method dictionaries - missing classes!\n");
+        return;
+    }
+    
+    // Create Symbol class method dictionary
+    if (g_symbol_class) {
+        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
+        symbol_class->method_dict = ezom_create_method_dictionary(4);
+        printf("   Symbol class method dictionary created at 0x%06lX\n", (unsigned long)symbol_class->method_dict);
+        ezom_log("   Symbol class method dictionary created at 0x%06lX\n", (unsigned long)symbol_class->method_dict);
     }
     
     if (g_integer_class && g_symbol_class) {
@@ -411,11 +433,35 @@ static void ezom_bootstrap_phase3_methods(void) {
     }
     
     // Install methods in all classes
+    printf("   Installing methods in all classes...\n");
+    ezom_log("   Installing methods in all classes...\n");
+    
+    printf("   About to install Object methods...\n");
+    ezom_log("   About to install Object methods...\n");
     ezom_install_object_methods();
+    
+    printf("   About to install Integer methods...\n");
+    ezom_log("   About to install Integer methods...\n");
     ezom_install_integer_methods();
+    printf("   COMPLETED Integer methods installation\n");
+    ezom_log("   COMPLETED Integer methods installation\n");
+    
+    printf("   About to install String methods...\n");
+    ezom_log("   About to install String methods...\n");
     ezom_install_string_methods();
+    printf("   COMPLETED String methods installation\n");
+    ezom_log("   COMPLETED String methods installation\n");
+    
+    printf("   About to install Array methods...\n");
+    ezom_log("   About to install Array methods...\n");
     ezom_install_array_methods();
+    
+    printf("   About to install Boolean methods...\n");
+    ezom_log("   About to install Boolean methods...\n");
     ezom_install_boolean_methods();
+    
+    printf("   About to install Block methods...\n");
+    ezom_log("   About to install Block methods...\n");
     ezom_install_block_methods();
     
     printf("Enhanced bootstrap complete! SOM-compatible class hierarchy ready.\n");
@@ -424,18 +470,80 @@ static void ezom_bootstrap_phase3_methods(void) {
 // Helper function for adding methods to method dictionary
 static void add_method_to_dict(ezom_method_dict_t* dict, const char* selector, uint8_t prim_num, uint8_t arg_count) {
     printf("     Adding method '%s' (prim %d)...", selector, prim_num);
+    ezom_log("     Adding method '%s' (prim %d)...\n", selector, prim_num);
+    
+    if (!dict) {
+        printf(" FAILED - dict is NULL!\n");
+        ezom_log(" FAILED - dict is NULL!\n");
+        return;
+    }
+    
+    if (!selector) {
+        printf(" FAILED - selector is NULL!\n");
+        ezom_log(" FAILED - selector is NULL!\n");
+        return;
+    }
+    
+    printf(" [dict=0x%06lX, size=%d, capacity=%d]", (unsigned long)dict, dict->size, dict->capacity);
+    ezom_log(" [dict=0x%06lX, size=%d, capacity=%d]\n", (unsigned long)dict, dict->size, dict->capacity);
+    
+    // Add memory corruption check
+    if (dict->size >= dict->capacity) {
+        printf(" ERROR: Dictionary size >= capacity!\n");
+        ezom_log(" ERROR: Dictionary size >= capacity!\n");
+        return;
+    }
+    
+    if ((unsigned long)dict < 0x042000 || (unsigned long)dict > 0x050000) {
+        printf(" ERROR: Dictionary pointer out of expected range!\n");
+        ezom_log(" ERROR: Dictionary pointer out of expected range!\n");
+        return;
+    }
+    
     if (dict->size < dict->capacity) {
+        printf(" Creating method at index %d...", dict->size);
+        ezom_log(" Creating method at index %d...", dict->size);
+        
         ezom_method_t* method = &dict->methods[dict->size];
-        method->selector = ezom_create_symbol(selector, strlen(selector));
-        if (!method->selector) {
-            printf(" FAILED - symbol creation failed\n");
+        printf(" method ptr=0x%06lX", (unsigned long)method);
+        ezom_log(" method ptr=0x%06lX", (unsigned long)method);
+        
+        printf(" Creating symbol...");
+        ezom_log(" Creating symbol...");
+        
+        // Add safety check for selector string
+        if (!selector) {
+            printf(" ERROR: selector string is NULL!\n");
+            ezom_log(" ERROR: selector string is NULL!\n");
             return;
         }
+        
+        size_t selector_len = strlen(selector);
+        printf(" selector='%s' len=%d...", selector, (int)selector_len);
+        ezom_log(" selector='%s' len=%d...", selector, (int)selector_len);
+        
+        method->selector = ezom_create_symbol(selector, selector_len);
+        printf(" symbol=0x%06lX", (unsigned long)method->selector);
+        ezom_log(" symbol=0x%06lX", (unsigned long)method->selector);
+        
+        if (!method->selector) {
+            printf(" FAILED - symbol creation failed\n");
+            ezom_log(" FAILED - symbol creation failed\n");
+            return;
+        }
+        
+        printf(" Setting method fields...");
+        ezom_log(" Setting method fields...");
         method->code = prim_num;
         method->arg_count = arg_count;
         method->flags = EZOM_METHOD_PRIMITIVE;
+        
+        printf(" Incrementing dict size...");
+        ezom_log(" Incrementing dict size...");
         dict->size++;
+        
         printf(" SUCCESS (dict size now %d)\n", dict->size);
+        ezom_log(" SUCCESS (dict size now %d)\n", dict->size);
     } else {
         printf(" FAILED - dictionary full (%d/%d)\n", dict->size, dict->capacity);
     }
@@ -443,8 +551,31 @@ static void add_method_to_dict(ezom_method_dict_t* dict, const char* selector, u
 
 // Enhanced method installation functions
 void ezom_install_object_methods(void) {
+    printf("   Installing Object methods...\n");
+    ezom_log("   Installing Object methods...\n");
+    
+    printf("   g_object_class = 0x%06lX\n", (unsigned long)g_object_class);
+    ezom_log("   g_object_class = 0x%06lX\n", (unsigned long)g_object_class);
+    
+    if (!g_object_class) {
+        printf("   ERROR: g_object_class is NULL!\n");
+        ezom_log("   ERROR: g_object_class is NULL!\n");
+        return;
+    }
+    
     ezom_class_t* object_class = (ezom_class_t*)g_object_class;
+    printf("   object_class->method_dict = 0x%06lX\n", (unsigned long)object_class->method_dict);
+    ezom_log("   object_class->method_dict = 0x%06lX\n", (unsigned long)object_class->method_dict);
+    
+    if (!object_class->method_dict) {
+        printf("   ERROR: method_dict is NULL!\n");
+        ezom_log("   ERROR: method_dict is NULL!\n");
+        return;
+    }
+    
     ezom_method_dict_t* dict = (ezom_method_dict_t*)object_class->method_dict;
+    printf("   dict capacity: %d, size: %d\n", dict->capacity, dict->size);
+    ezom_log("   dict capacity: %d, size: %d\n", dict->capacity, dict->size);
     
     // Install Object methods (enhanced)
     add_method_to_dict(dict, "class", PRIM_OBJECT_CLASS, 0);
@@ -498,6 +629,10 @@ void ezom_install_integer_methods(void) {
     add_method_to_dict(dict, "println", PRIM_OBJECT_PRINTLN, 0);
     
     printf("      Installed %d methods in Integer\n", dict->size);
+    ezom_log("      Installed %d methods in Integer\n", dict->size);
+    
+    printf("   END ezom_install_integer_methods function\n");
+    ezom_log("   END ezom_install_integer_methods function\n");
 }
 
 void ezom_install_string_methods(void) {
@@ -525,8 +660,37 @@ void ezom_install_array_methods(void) {
 }
 
 void ezom_install_boolean_methods(void) {
+    printf("   Installing Boolean methods...\n");
+    ezom_log("   Installing Boolean methods...\n");
+    
+    printf("   g_true_class = 0x%06lX\n", (unsigned long)g_true_class);
+    printf("   g_false_class = 0x%06lX\n", (unsigned long)g_false_class);
+    ezom_log("   g_true_class = 0x%06lX\n", (unsigned long)g_true_class);
+    ezom_log("   g_false_class = 0x%06lX\n", (unsigned long)g_false_class);
+    
+    if (!g_true_class) {
+        printf("   ERROR: g_true_class is NULL!\n");
+        ezom_log("   ERROR: g_true_class is NULL!\n");
+        return;
+    }
+    
+    if (!g_false_class) {
+        printf("   ERROR: g_false_class is NULL!\n");
+        ezom_log("   ERROR: g_false_class is NULL!\n");
+        return;
+    }
+    
     // Install methods for True class
     ezom_class_t* true_class = (ezom_class_t*)g_true_class;
+    printf("   true_class->method_dict = 0x%06lX\n", (unsigned long)true_class->method_dict);
+    ezom_log("   true_class->method_dict = 0x%06lX\n", (unsigned long)true_class->method_dict);
+    
+    if (!true_class->method_dict) {
+        printf("   ERROR: true_class method_dict is NULL!\n");
+        ezom_log("   ERROR: true_class method_dict is NULL!\n");
+        return;
+    }
+    
     ezom_method_dict_t* true_dict = (ezom_method_dict_t*)true_class->method_dict;
     
     add_method_to_dict(true_dict, "ifTrue:", PRIM_TRUE_IF_TRUE, 1);
@@ -537,6 +701,15 @@ void ezom_install_boolean_methods(void) {
     
     // Install methods for False class
     ezom_class_t* false_class = (ezom_class_t*)g_false_class;
+    printf("   false_class->method_dict = 0x%06lX\n", (unsigned long)false_class->method_dict);
+    ezom_log("   false_class->method_dict = 0x%06lX\n", (unsigned long)false_class->method_dict);
+    
+    if (!false_class->method_dict) {
+        printf("   ERROR: false_class method_dict is NULL!\n");
+        ezom_log("   ERROR: false_class method_dict is NULL!\n");
+        return;
+    }
+    
     ezom_method_dict_t* false_dict = (ezom_method_dict_t*)false_class->method_dict;
     
     add_method_to_dict(false_dict, "ifTrue:", PRIM_FALSE_IF_TRUE, 1);

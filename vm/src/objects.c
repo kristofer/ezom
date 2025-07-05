@@ -69,17 +69,33 @@ uint24_t ezom_create_string(const char* data, uint16_t length) {
 // Create symbol (interned string)
 uint24_t ezom_create_symbol(const char* data, uint16_t length) {
     // For Phase 1, just create like a string - interning comes later
+    printf("DEBUG: ezom_create_symbol called: data='%.*s' length=%d\n", length, data, length);
+    
     uint24_t ptr = ezom_allocate(sizeof(ezom_symbol_t) + length + 1);
+    printf("DEBUG: ezom_allocate returned ptr=0x%06X\n", ptr);
     if (!ptr) return 0;
     
+    printf("DEBUG: About to call ezom_init_object with ptr=0x%06X, g_symbol_class=0x%06X\n", ptr, g_symbol_class);
     ezom_init_object(ptr, g_symbol_class, EZOM_TYPE_OBJECT);
+    printf("DEBUG: ezom_init_object completed\n");
     
     ezom_symbol_t* obj = (ezom_symbol_t*)ptr;
+    printf("DEBUG: obj pointer = 0x%06X\n", (uint24_t)obj);
+    
+    // FIXED: Use explicit pointer arithmetic instead of flexible array member
+    // Calculate data pointer manually to avoid ez80 compiler issues
+    char* data_ptr = (char*)(ptr + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    printf("DEBUG: Calculated data_ptr = 0x%06X\n", (uint24_t)data_ptr);
+    printf("DEBUG: Expected offset = %d bytes\n", sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    
     obj->length = length;
     obj->hash_cache = ezom_compute_hash(ptr); // Simple hash for now
-    memcpy(obj->data, data, length);
-    obj->data[length] = '\0';
     
+    printf("DEBUG: About to memcpy to address 0x%06X\n", (uint24_t)data_ptr);
+    memcpy(data_ptr, data, length);
+    data_ptr[length] = '\0';
+    
+    printf("DEBUG: ezom_create_symbol returning ptr=0x%06X\n", ptr);
     return ptr;
 }
 

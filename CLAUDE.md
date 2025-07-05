@@ -10,14 +10,6 @@ EZOM (Easy Simple Object Machine) is a minimal object-oriented programming langu
 
 The project uses a Makefile with the ez80 AgDev toolchain:
 
-```bash
-make                    # Build ezom_phase1.bin
-make run               # Build and run in emulator  
-make test              # Build and run test_phase1.c
-make debug             # Build with debug symbols
-make clean             # Clean build files
-```
-
 The target platform is ez80 Agon Light 2 using:
 - Compiler: `ez80-clang`
 - Emulator: `fab-agon-emulator` (optional)
@@ -52,6 +44,10 @@ EZOM is implemented in phases, with the current code representing Phase 1 - a co
 - Integer arithmetic: +, -, *, =
 - String operations: length, concatenation
 - Type checking and error handling
+
+See @ARCHITECTURE.md
+
+and @Phase1-2.md and @Phase3.md
 
 ### Memory Layout (ez80 Specific)
 

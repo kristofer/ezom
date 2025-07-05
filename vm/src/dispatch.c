@@ -63,7 +63,11 @@ bool ezom_symbols_equal(uint24_t sym1, uint24_t sym2) {
     
     if (s1->length != s2->length) return false;
     
-    return strncmp(s1->data, s2->data, s1->length) == 0;
+    // FIXED: Use explicit pointer arithmetic instead of flexible array member
+    char* s1_data = (char*)(sym1 + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    char* s2_data = (char*)(sym2 + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    
+    return strncmp(s1_data, s2_data, s1->length) == 0;
 }
 
 ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {

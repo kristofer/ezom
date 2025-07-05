@@ -53,13 +53,7 @@ int main(int argc, char* argv[]) {
     ezom_log("DEBUG: Initializing primitives...\n");
     ezom_init_primitives();
     
-    // Bootstrap basic classes first (creates g_object_class)
-    printf("DEBUG: Bootstrapping classes...\n");
-    ezom_log("DEBUG: Bootstrapping classes...\n");
-    ezom_bootstrap_classes();
-    
-    // Bootstrap enhanced classes for SOM compatibility
-    // This creates g_nil, g_true, g_false after g_object_class exists
+    // Bootstrap classes using the enhanced SOM-compatible approach
     printf("DEBUG: Bootstrapping enhanced classes...\n");
     ezom_log("DEBUG: Bootstrapping enhanced classes...\n");
     ezom_bootstrap_enhanced_classes();
