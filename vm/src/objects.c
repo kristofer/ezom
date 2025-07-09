@@ -43,26 +43,40 @@ uint24_t ezom_create_integer(int16_t value) {
 
 // Create string object
 uint24_t ezom_create_string(const char* data, uint16_t length) {
+    printf("DEBUG: ezom_create_string entry, data='%.*s', length=%d\n", length, data, length);
+    
     uint24_t ptr = ezom_allocate(sizeof(ezom_string_t) + length + 1);
+    printf("DEBUG: ezom_allocate returned ptr=0x%06X\n", ptr);
     if (!ptr) return 0;
     
     // Bootstrap safety: use Object class if String class not ready
     uint24_t class_ptr = g_string_class ? g_string_class : g_object_class;
+    printf("DEBUG: class_ptr=0x%06X (g_string_class=0x%06X, g_object_class=0x%06X)\n", 
+           class_ptr, g_string_class, g_object_class);
+    
     if (class_ptr) {
+        printf("DEBUG: Calling ezom_init_object with class\n");
         ezom_init_object(ptr, class_ptr, EZOM_TYPE_STRING);
+        printf("DEBUG: ezom_init_object completed\n");
     } else {
+        printf("DEBUG: Using ultra-bootstrap mode\n");
         // Ultra-bootstrap: create minimal object without class
         ezom_object_t* header = (ezom_object_t*)ptr;
         header->class_ptr = 0;
         header->hash = ezom_compute_hash(ptr);
         header->flags = EZOM_TYPE_STRING;
+        printf("DEBUG: Ultra-bootstrap completed\n");
     }
     
+    printf("DEBUG: Setting up string data\n");
     ezom_string_t* obj = (ezom_string_t*)ptr;
     obj->length = length;
+    
+    printf("DEBUG: About to memcpy data\n");
     memcpy(obj->data, data, length);
     obj->data[length] = '\0';  // Null terminate for C compatibility
     
+    printf("DEBUG: ezom_create_string returning ptr=0x%06X\n", ptr);
     return ptr;
 }
 

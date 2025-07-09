@@ -10,8 +10,31 @@ EZOM (Easy Simple Object Machine) is a minimal object-oriented programming langu
 
 The project uses a Makefile with the ez80 AgDev toolchain:
 
+**To build the project:**
+```bash
+cd vm/
+make -f agmakefile
+```
+
+This creates `bin/ezom.bin` which can be run on the fab-agon-emulator.
+
+**To test the executable:**
+```bash
+# Copy the built executable to the emulator's SD card
+cp bin/ezom.bin ../../../fab-agon-emulator-v0.9.96-macos/sdcard/bin
+
+# Change to the emulator directory and run in debug mode
+cd ../../../fab-agon-emulator-v0.9.96-macos/
+./fab-agon-emulator -d
+
+# Check the debug output log file
+cat sdcard/ezom.log
+```
+
+The program creates debugging output in the `ezom.log` file on the emulator's SD card for analysis.
+
 The target platform is ez80 Agon Light 2 using:
-- Compiler: `ez80-clang`
+- Compiler: `ez80-clang` (via AgDev toolchain)
 - Emulator: `fab-agon-emulator` (optional)
 - Flags: `-Wall -Oz -mllvm -profile-guided-section-prefix=false`
 

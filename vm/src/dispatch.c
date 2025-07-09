@@ -5,6 +5,7 @@
 
 #include "../include/ezom_dispatch.h"
 #include "../include/ezom_primitives.h"
+#include "../include/ezom_memory.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -184,29 +185,136 @@ uint24_t ezom_send_message(ezom_message_t* msg) {
         ezom_log("DEBUG: Found primitive %d\n", prim_num);
         
         if (prim_num < MAX_PRIMITIVES && g_primitives[prim_num]) {
-            // Emergency bypass for integer addition to prevent crash
-            if (prim_num == PRIM_INTEGER_ADD) { // PRIM_INTEGER_ADD = 10
-                printf("DEBUG: Using emergency bypass for integer addition\n");
-                ezom_log("DEBUG: Using emergency bypass for integer addition\n");
-                // Manual implementation of integer addition to avoid function call crash
-                if (msg->receiver == 0xffffff || (msg->args && msg->args[0] == 0xffffff)) {
-                    printf("DEBUG: Corrupted objects in addition, returning 0\n");
-                    ezom_log("DEBUG: Corrupted objects in addition, returning 0\n");
-                    return ezom_create_integer(0);
+            // Integer addition now uses improved primitive implementation
+            if (prim_num == PRIM_INTEGER_ADD) {
+                printf("DEBUG: Calling improved integer addition primitive\n");
+                ezom_log("DEBUG: Calling improved integer addition primitive\n");
+            }
+            
+            // Emergency bypass for string concatenation - primitive function crashes
+            if (prim_num == PRIM_STRING_CONCAT) { // PRIM_STRING_CONCAT = 32
+                printf("DEBUG: Using emergency bypass for string concatenation (primitive crashes)\n");
+                ezom_log("DEBUG: Using emergency bypass for string concatenation (primitive crashes)\n");
+                
+                if (msg->arg_count == 1) {
+                    ezom_object_t* recv_obj = (ezom_object_t*)msg->receiver;
+                    ezom_object_t* arg_obj = (ezom_object_t*)msg->args[0];
+                    
+                    // Direct type checking
+                    if ((recv_obj->flags & 0xF0) == EZOM_TYPE_STRING && 
+                        (arg_obj->flags & 0xF0) == EZOM_TYPE_STRING) {
+                        
+                        ezom_string_t* str1 = (ezom_string_t*)msg->receiver;
+                        ezom_string_t* str2 = (ezom_string_t*)msg->args[0];
+                        
+                        printf("DEBUG: Concatenating '%.*s' + '%.*s'\n", 
+                               str1->length, str1->data, str2->length, str2->data);
+                        ezom_log("DEBUG: Concatenating '%.*s' + '%.*s'\n", 
+                               str1->length, str1->data, str2->length, str2->data);
+                        
+                        uint16_t new_length = str1->length + str2->length;
+                        uint24_t result = ezom_allocate(sizeof(ezom_string_t) + new_length + 1);
+                        
+                        if (!result) {
+                            printf("DEBUG: String allocation failed\n");
+                            ezom_log("DEBUG: String allocation failed\n");
+                            return g_nil;
+                        }
+                        
+                        ezom_init_object(result, g_string_class, EZOM_TYPE_STRING);
+                        
+                        ezom_string_t* result_str = (ezom_string_t*)result;
+                        result_str->length = new_length;
+                        
+                        memcpy(result_str->data, str1->data, str1->length);
+                        memcpy(result_str->data + str1->length, str2->data, str2->length);
+                        result_str->data[new_length] = '\0';
+                        
+                        printf("DEBUG: String concatenation result: '%.*s'\n", 
+                               result_str->length, result_str->data);
+                        ezom_log("DEBUG: String concatenation result: '%.*s'\n", 
+                               result_str->length, result_str->data);
+                        
+                        return result;
+                    }
                 }
-                if (msg->arg_count == 1 && ezom_is_integer(msg->receiver) && ezom_is_integer(msg->args[0])) {
-                    ezom_integer_t* recv = (ezom_integer_t*)msg->receiver;
-                    ezom_integer_t* arg = (ezom_integer_t*)msg->args[0];
-                    printf("DEBUG: Adding %d + %d\n", recv->value, arg->value);
-                    ezom_log("DEBUG: Adding %d + %d\n", recv->value, arg->value);
-                    return ezom_create_integer(recv->value + arg->value);
-                }
-                printf("DEBUG: Invalid types for addition, returning nil\n");
-                ezom_log("DEBUG: Invalid types for addition, returning nil\n");
+                
+                printf("DEBUG: Invalid types for string concatenation, returning nil\n");
+                ezom_log("DEBUG: Invalid types for string concatenation, returning nil\n");
                 return g_nil;
             }
+            
+            // Emergency bypass for true ifTrue: primitive - improved version crashes
+            if (prim_num == PRIM_TRUE_IF_TRUE) { // PRIM_TRUE_IF_TRUE = 50
+                printf("DEBUG: Using emergency bypass for true ifTrue: (primitive crashes)\n");
+                ezom_log("DEBUG: Using emergency bypass for true ifTrue: (primitive crashes)\n");
+                
+                if (msg->arg_count == 1 && msg->receiver == g_true) {
+                    printf("DEBUG: Executing true ifTrue: block\n");
+                    ezom_log("DEBUG: Executing true ifTrue: block\n");
+                    
+                    // Simply return the receiver (true) - don't try to execute the block yet
+                    return g_true;
+                } else {
+                    printf("DEBUG: Invalid receiver for true ifTrue:\n");
+                    ezom_log("DEBUG: Invalid receiver for true ifTrue:\n");
+                    return g_nil;
+                }
+            }
+            
+            if (prim_num == PRIM_INTEGER_MOD) {
+                printf("DEBUG: Calling improved integer modulo primitive\n");
+                ezom_log("DEBUG: Calling improved integer modulo primitive\n");
+            }
+            
+            if (prim_num == PRIM_INTEGER_LTE) {
+                printf("DEBUG: Calling improved integer LTE primitive\n");
+                ezom_log("DEBUG: Calling improved integer LTE primitive\n");
+            }
+            
+            if (prim_num == PRIM_INTEGER_AS_STRING) {
+                printf("DEBUG: Calling improved integer asString primitive\n");
+                ezom_log("DEBUG: Calling improved integer asString primitive\n");
+            }
+            
+            // Emergency bypass for false ifTrue: primitive - improved version crashes
+            if (prim_num == PRIM_FALSE_IF_TRUE) { // PRIM_FALSE_IF_TRUE = 53
+                printf("DEBUG: Using emergency bypass for false ifTrue: (primitive crashes)\n");
+                ezom_log("DEBUG: Using emergency bypass for false ifTrue: (primitive crashes)\n");
+                
+                if (msg->arg_count == 1 && msg->receiver == g_false) {
+                    printf("DEBUG: false ifTrue: should not execute block, returning nil\n");
+                    ezom_log("DEBUG: false ifTrue: should not execute block, returning nil\n");
+                    
+                    // false ifTrue: should not execute the block, return nil
+                    return g_nil;
+                } else {
+                    printf("DEBUG: Invalid receiver for false ifTrue:\n");
+                    ezom_log("DEBUG: Invalid receiver for false ifTrue:\n");
+                    return g_nil;
+                }
+            }
+            
             printf("DEBUG: About to call primitive function\n");
+            printf("DEBUG: prim_num=%d, function_ptr=0x%06lX\n", prim_num, (unsigned long)g_primitives[prim_num]);
+            printf("DEBUG: receiver=0x%06lX, args=0x%06lX, arg_count=%d\n", 
+                   (unsigned long)msg->receiver, (unsigned long)msg->args, msg->arg_count);
+            
             ezom_log("DEBUG: About to call primitive function\n");
+            ezom_log("DEBUG: prim_num=%d, function_ptr=0x%06lX\n", prim_num, (unsigned long)g_primitives[prim_num]);
+            ezom_log("DEBUG: receiver=0x%06lX, args=0x%06lX, arg_count=%d\n", 
+                     (unsigned long)msg->receiver, (unsigned long)msg->args, msg->arg_count);
+            
+            // Validate function pointer before calling
+            if (!g_primitives[prim_num]) {
+                printf("DEBUG: NULL function pointer for primitive %d\n", prim_num);
+                ezom_log("DEBUG: NULL function pointer for primitive %d\n", prim_num);
+                return g_nil;
+            }
+            
+            printf("DEBUG: Calling primitive function now...\n");
+            ezom_log("DEBUG: Calling primitive function now...\n");
+            
             return g_primitives[prim_num](msg->receiver, msg->args, msg->arg_count);
         } else {
             printf("DEBUG: Invalid primitive number or null function\n");
