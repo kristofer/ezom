@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "ezom_platform.h"
 
 typedef enum {
     AST_CLASS_DEF,
@@ -163,3 +164,19 @@ uint16_t ezom_ast_count_locals(ezom_ast_node_t* locals);
 
 // AST validation
 bool ezom_ast_validate(ezom_ast_node_t* node, char* error_buffer, size_t buffer_size);
+
+// Simple AST creation functions for testing
+ezom_ast_node_t* ezom_ast_create_integer_literal(int value);
+ezom_ast_node_t* ezom_ast_create_string_literal(char* value);
+ezom_ast_node_t* ezom_ast_create_binary_message(ezom_ast_node_t* receiver, char* selector, ezom_ast_node_t* argument);
+
+// Simple AST evaluation functions for testing
+uint24_t ezom_ast_simple_evaluate(ezom_ast_node_t* node);
+uint24_t ezom_ast_test_simple_expression(void);
+
+// Complex AST test functions
+uint24_t ezom_ast_test_nested_arithmetic(void);      // (10 + 5) * 2
+uint24_t ezom_ast_test_chain_operations(void);       // 20 - 5 + 3  
+uint24_t ezom_ast_test_mixed_operations(void);       // 100 / 4 + 15 * 2
+uint24_t ezom_ast_test_comparison_chain(void);       // (5 < 10) = true
+uint24_t ezom_ast_test_deep_nesting(void);           // ((8 + 2) * 3) - (5 + 1)

@@ -1,0 +1,128 @@
+EZOM VM Debug Log Started
+========================
+
+DEBUG: ezom_send_message entry, receiver=0x042C06
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042C1E
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Using emergency bypass for integer addition
+DEBUG: Adding 5 + 3
+DEBUG: ezom_send_message entry, receiver=0x042C38
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042C50
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Using emergency bypass for integer addition
+DEBUG: Adding 10 + 5
+DEBUG: ezom_send_message entry, receiver=0x042C5E
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042C76
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 2
+DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
+DEBUG: Returning method=0x1500081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 12
+DEBUG: About to call primitive function
+DEBUG: ezom_send_message entry, receiver=0x042C90
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042CA8
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 1
+DEBUG: Method selector=0x04266E, code=0x00000B, flags=0x01
+DEBUG: Returning method=0x1500081E0, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 11
+DEBUG: About to call primitive function
+DEBUG: ezom_send_message entry, receiver=0x042CB6
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042CCE
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Using emergency bypass for integer addition
+DEBUG: Adding 15 + 3
+DEBUG: ezom_send_message entry, receiver=0x042CE8
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D00
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 3
+DEBUG: Method selector=0x04268A, code=0x00000D, flags=0x01
+DEBUG: Returning method=0x1500081F8, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 13
+DEBUG: About to call primitive function
+DEBUG: ezom_send_message entry, receiver=0x042D1A
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D32
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 2
+DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
+DEBUG: Returning method=0x1500081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 12
+DEBUG: About to call primitive function
+DEBUG: ezom_send_message entry, receiver=0x042D0E
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D4C
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Using emergency bypass for integer addition
+DEBUG: Adding 25 + 30
+DEBUG: ezom_send_message entry, receiver=0x042D66
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D7E
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 6
+DEBUG: Method selector=0x0426B6, code=0x00000F, flags=0x01
+DEBUG: Returning method=0x15000821C, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 15
+DEBUG: About to call primitive function
+DEBUG: ezom_send_message entry, receiver=0x042D8C
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DA4
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Using emergency bypass for integer addition
+DEBUG: Adding 8 + 2
+DEBUG: ezom_send_message entry, receiver=0x042DB2
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DCA
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 2
+DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
+DEBUG: Returning method=0x1500081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 12
+DEBUG: About to call primitive function
+DEBUG: ezom_send_message entry, receiver=0x042DE4
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DFC
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Using emergency bypass for integer addition
+DEBUG: Adding 5 + 1
+DEBUG: ezom_send_message entry, receiver=0x042DD8
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E16
+DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 1
+DEBUG: Method selector=0x04266E, code=0x00000B, flags=0x01
+DEBUG: Returning method=0x1500081E0, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 11
+DEBUG: About to call primitive function
+
+EZOM VM Debug Log Ended

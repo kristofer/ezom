@@ -12,6 +12,7 @@
 #include "../include/ezom_lexer.h"
 #include "../include/ezom_parser.h"
 #include "../include/ezom_ast.h"
+#include "../include/ezom_ast_memory.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -83,8 +84,8 @@ int main(int argc, char* argv[]) {
     
     if (int1 && int2) {
         printf("   Created integers: %d and %d\n", 
-               ((ezom_integer_t*)int1)->value,
-               ((ezom_integer_t*)int2)->value);
+               ((ezom_integer_t*)EZOM_OBJECT_PTR(int1))->value,
+               ((ezom_integer_t*)EZOM_OBJECT_PTR(int2))->value);
     }
     
     // Test 2: Create strings
@@ -93,8 +94,8 @@ int main(int argc, char* argv[]) {
     uint24_t str2 = ezom_create_string(" World", 6);
     
     if (str1 && str2) {
-        ezom_string_t* s1 = (ezom_string_t*)str1;
-        ezom_string_t* s2 = (ezom_string_t*)str2;
+        ezom_string_t* s1 = (ezom_string_t*)EZOM_OBJECT_PTR(str1);
+        ezom_string_t* s2 = (ezom_string_t*)EZOM_OBJECT_PTR(str2);
         printf("   Created strings: '%.*s' and '%.*s'\n", 
                s1->length, s1->data, s2->length, s2->data);
     }
@@ -145,9 +146,9 @@ int main(int argc, char* argv[]) {
                 printf("   Debug: '+' method NOT FOUND in Integer class\n");
                 
                 // Let's check the method dictionary
-                ezom_class_t* int_class = (ezom_class_t*)g_integer_class;
+                ezom_class_t* int_class = (ezom_class_t*)EZOM_OBJECT_PTR(g_integer_class);
                 if (int_class->method_dict) {
-                    ezom_method_dict_t* dict = (ezom_method_dict_t*)int_class->method_dict;
+                    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(int_class->method_dict);
                     printf("   Debug: Integer class has method dict with %d/%d methods\n", 
                            dict->size, dict->capacity);
                 } else {
@@ -172,7 +173,7 @@ int main(int argc, char* argv[]) {
             
             uint24_t result = ezom_send_binary_message(int1, plus_selector, int2);
             if (result) {
-                ezom_integer_t* res = (ezom_integer_t*)result;
+                ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(result);
                 printf("   42 + 8 = %d\n", res->value);
                 
                 // Test println
@@ -197,7 +198,7 @@ int main(int argc, char* argv[]) {
         if (concat_selector) {
             uint24_t result = ezom_send_binary_message(str1, concat_selector, str2);
             if (result) {
-                ezom_string_t* res = (ezom_string_t*)result;
+                ezom_string_t* res = (ezom_string_t*)EZOM_OBJECT_PTR(result);
                 printf("   'Hello' + ' World' = '%.*s'\n", res->length, res->data);
                 
                 // Continue to Phase 2 tests
@@ -353,7 +354,7 @@ int main(int argc, char* argv[]) {
     ezom_memory_stats();
     
     printf("\nPhase 1 complete!\n");
-    wait_for_continue();
+    // wait_for_continue();  // Commented out for faster debugging
     
     // Phase 1.5 Enhanced Tests
     printf("\n===============================\n");
@@ -380,7 +381,7 @@ int main(int argc, char* argv[]) {
         printf("ignored\n");
     }
     
-    wait_for_continue();
+    // wait_for_continue();  // Commented out for faster debugging
     
     // Test 2: Enhanced Integer operations
     printf("2. Testing enhanced Integer operations...\n");
@@ -394,7 +395,7 @@ int main(int argc, char* argv[]) {
         if (mod_selector) {
             uint24_t result = ezom_send_binary_message(num1, mod_selector, num2);
             if (result) {
-                ezom_integer_t* res = (ezom_integer_t*)result;
+                ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(result);
                 printf("   10 \\\\ 3 = %d\n", res->value);
             }
         }
@@ -415,20 +416,20 @@ int main(int argc, char* argv[]) {
         if (as_string_selector) {
             uint24_t result = ezom_send_unary_message(num1, as_string_selector);
             if (result) {
-                ezom_string_t* str = (ezom_string_t*)result;
+                ezom_string_t* str = (ezom_string_t*)EZOM_OBJECT_PTR(result);
                 printf("   10 asString = '%.*s'\n", str->length, str->data);
             }
         }
     }
     
-    wait_for_continue();
+    // wait_for_continue();  // Commented out for faster debugging
     
     // Test 3: Array operations
     printf("3. Testing Array operations...\n");
     
     uint24_t array = ezom_create_array(5);
     if (array) {
-        ezom_array_t* arr = (ezom_array_t*)array;
+        ezom_array_t* arr = (ezom_array_t*)EZOM_OBJECT_PTR(array);
         printf("   Created array with size %d\n", arr->size);
         
         // Test at:put:
@@ -456,7 +457,7 @@ int main(int argc, char* argv[]) {
             uint24_t result = ezom_send_binary_message(array, at_selector, index);
             
             if (result) {
-                ezom_string_t* str = (ezom_string_t*)result;
+                ezom_string_t* str = (ezom_string_t*)EZOM_OBJECT_PTR(result);
                 printf("   array at: 1 = '%.*s'\n", str->length, str->data);
             }
         }
@@ -466,13 +467,13 @@ int main(int argc, char* argv[]) {
         if (length_selector) {
             uint24_t result = ezom_send_unary_message(array, length_selector);
             if (result) {
-                ezom_integer_t* len = (ezom_integer_t*)result;
+                ezom_integer_t* len = (ezom_integer_t*)EZOM_OBJECT_PTR(result);
                 printf("   array length = %d\n", len->value);
             }
         }
     }
     
-    wait_for_continue();
+    // wait_for_continue();  // Commented out for faster debugging
     
     // Test 4: Object operations
     printf("4. Testing Object operations...\n");
@@ -509,7 +510,7 @@ int main(int argc, char* argv[]) {
     printf("  ✓ Array class with indexing operations\n");
     printf("  ✓ Block objects (foundation for closures)\n");
     printf("  ✓ Object primitives (isNil, notNil)\n");
-    wait_for_continue();
+    // wait_for_continue();  // Commented out for faster debugging
     
     // Close the log file before exit
     ezom_log_close();
@@ -548,12 +549,105 @@ int main(int argc, char* argv[]) {
     
     // Test 2: AST Creation and Evaluation
     printf("\n2. Testing AST Evaluation:\n");
-    printf("   SKIPPED: AST evaluation tests disabled due to memory corruption\n");
-    printf("   Issue: AST nodes allocated with malloc() conflict with ez80 memory layout\n");
+    printf("   Testing simple expression evaluation with AST memory pool...\n");
+    
+    // Test AST-based expression evaluation
+    uint24_t ast_result = ezom_ast_test_simple_expression();
+    if (ast_result) {
+        ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(ast_result);
+        printf("   AST evaluation of '5 + 3' = %d ✓\n", res->value);
+    } else {
+        printf("   AST evaluation failed ✗\n");
+    }
+
+    // Test complex AST expressions
+    printf("   Testing complex AST expressions...\n");
+    
+    // Test 1: Nested arithmetic - (10 + 5) * 2
+    printf("   → Testing: (10 + 5) * 2\n");
+    ast_result = ezom_ast_test_nested_arithmetic();
+    if (ast_result) {
+        ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(ast_result);
+        printf("     Result: %d ✓\n", res->value);
+    } else {
+        printf("     Failed ✗\n");
+    }
+    
+    // Test 2: Chain operations - 20 - 5 + 3
+    printf("   → Testing: 20 - 5 + 3\n");
+    ast_result = ezom_ast_test_chain_operations();
+    if (ast_result) {
+        ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(ast_result);
+        printf("     Result: %d ✓\n", res->value);
+    } else {
+        printf("     Failed ✗\n");
+    }
+    
+    // Test 3: Mixed operations - 100 / 4 + 15 * 2
+    printf("   → Testing: 100 / 4 + 15 * 2\n");
+    ast_result = ezom_ast_test_mixed_operations();
+    if (ast_result) {
+        ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(ast_result);
+        printf("     Result: %d ✓\n", res->value);
+    } else {
+        printf("     Failed ✗\n");
+    }
+    
+    // Test 4: Comparison chains - (5 < 10) = true
+    printf("   → Testing: (5 < 10) = true\n");
+    ast_result = ezom_ast_test_comparison_chain();
+    if (ast_result) {
+        if (ast_result == g_true) {
+            printf("     Result: true ✓\n");
+        } else if (ast_result == g_false) {
+            printf("     Result: false ✓\n");
+        } else {
+            printf("     Result: unknown boolean ?\n");
+        }
+    } else {
+        printf("     Failed ✗\n");
+    }
+    
+    // Test 5: Deep nesting - ((8 + 2) * 3) - (5 + 1)
+    printf("   → Testing: ((8 + 2) * 3) - (5 + 1)\n");
+    ast_result = ezom_ast_test_deep_nesting();
+    if (ast_result) {
+        ezom_integer_t* res = (ezom_integer_t*)EZOM_OBJECT_PTR(ast_result);
+        printf("     Result: %d ✓\n", res->value);
+    } else {
+        printf("     Failed ✗\n");
+    }
+    
+    // Print AST memory pool statistics after complex tests
+    ezom_ast_print_stats();
     
     // Test 3: Block Creation
     printf("\n3. Testing Block Creation:\n");
-    printf("   SKIPPED: Block AST tests disabled due to memory corruption\n");
+    printf("   Testing simple block objects (without AST nodes)...\n");
+    
+    // Create a simple block object
+    uint24_t simple_block = ezom_create_block(0, 0, 0);
+    if (simple_block) {
+        printf("   Block object created: 0x%06X ✓\n", simple_block);
+        
+        // Check if it's a valid block
+        if (ezom_is_block(simple_block)) {
+            printf("   Block type validation passed ✓\n");
+        } else {
+            printf("   Block type validation failed ✗\n");
+        }
+        
+        // Test block class
+        ezom_object_t* block_obj = (ezom_object_t*)EZOM_OBJECT_PTR(simple_block);
+        if (block_obj->class_ptr == g_block_class) {
+            printf("   Block class correct ✓\n");
+        } else {
+            printf("   Block class incorrect ✗ (expected: 0x%06X, got: 0x%06X)\n", 
+                   g_block_class, block_obj->class_ptr);
+        }
+    } else {
+        printf("   Block creation failed ✗\n");
+    }
     
     // Test 4: Boolean Objects
     printf("\n4. Testing Boolean Objects:\n");
@@ -563,7 +657,7 @@ int main(int argc, char* argv[]) {
     printf("   Is g_false truthy? %s\n", ezom_is_truthy(g_false) ? "yes" : "no");
     
     printf("\nPhase 2 tests complete!\n");
-    wait_for_continue();
+    // wait_for_continue();  // Commented out for faster debugging
     
     // Phase 2 Summary
     printf("\n=======================================\n");

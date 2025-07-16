@@ -1,5 +1,5 @@
 # Test makefile for native compilation
-CC=gcc
+CC=clang
 CFLAGS=-Wall -g -DDEBUG_NATIVE
 TARGET=ezom_debug
 

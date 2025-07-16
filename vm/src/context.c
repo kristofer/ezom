@@ -34,7 +34,7 @@ void ezom_init_context_system(void) {
     if (g_block_class) {
         ezom_init_object(g_block_class, g_object_class, EZOM_TYPE_CLASS);
         
-        ezom_class_t* block_class = (ezom_class_t*)g_block_class;
+        ezom_class_t* block_class = (ezom_class_t*)EZOM_OBJECT_PTR(g_block_class);
         block_class->superclass = g_object_class;
         block_class->method_dict = ezom_create_method_dictionary(8);
         block_class->instance_vars = 0;
@@ -49,7 +49,7 @@ void ezom_init_context_system(void) {
     if (g_context_class) {
         ezom_init_object(g_context_class, g_object_class, EZOM_TYPE_CLASS);
         
-        ezom_class_t* context_class = (ezom_class_t*)g_context_class;
+        ezom_class_t* context_class = (ezom_class_t*)EZOM_OBJECT_PTR(g_context_class);
         context_class->superclass = g_object_class;
         context_class->method_dict = ezom_create_method_dictionary(4);
         context_class->instance_vars = 0;
@@ -68,7 +68,7 @@ uint24_t ezom_create_extended_context(uint24_t outer_context, uint24_t method, u
     
     ezom_init_object(ptr, g_context_class, EZOM_TYPE_OBJECT);
     
-    ezom_context_t* context = (ezom_context_t*)ptr;
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(ptr);
     context->outer_context = outer_context;
     context->method = method;
     context->receiver = receiver;
@@ -88,7 +88,7 @@ uint24_t ezom_create_block_context(uint24_t outer_context, uint24_t block, uint8
     uint24_t context = ezom_create_context(outer_context, local_count);
     if (!context) return 0;
     
-    ezom_context_t* ctx = (ezom_context_t*)context;
+    ezom_context_t* ctx = (ezom_context_t*)EZOM_OBJECT_PTR(context);
     ctx->method = block; // Store block reference in method field
     
     return context;
@@ -97,7 +97,7 @@ uint24_t ezom_create_block_context(uint24_t outer_context, uint24_t block, uint8
 void ezom_context_set_local(uint24_t context_ptr, uint8_t index, uint24_t value) {
     if (!context_ptr) return;
     
-    ezom_context_t* context = (ezom_context_t*)context_ptr;
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
     if (index < context->local_count) {
         context->locals[index] = value;
     }
@@ -106,7 +106,7 @@ void ezom_context_set_local(uint24_t context_ptr, uint8_t index, uint24_t value)
 uint24_t ezom_context_get_local(uint24_t context_ptr, uint8_t index) {
     if (!context_ptr) return g_nil;
     
-    ezom_context_t* context = (ezom_context_t*)context_ptr;
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
     if (index < context->local_count) {
         return context->locals[index];
     }
@@ -119,7 +119,7 @@ uint24_t ezom_context_lookup_variable(uint24_t context_ptr, const char* name) {
     // to track variable names and their indices
     if (!context_ptr || !name) return g_nil;
     
-    ezom_context_t* context = (ezom_context_t*)context_ptr;
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
     
     // Look up in current context's locals
     // For now, just return nil - this would need a symbol table
@@ -136,7 +136,7 @@ uint24_t ezom_context_lookup_variable(uint24_t context_ptr, const char* name) {
 void ezom_context_bind_parameters(uint24_t context_ptr, uint24_t* args, uint8_t arg_count) {
     if (!context_ptr || !args) return;
     
-    ezom_context_t* context = (ezom_context_t*)context_ptr;
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
     uint8_t param_count = arg_count < context->local_count ? arg_count : context->local_count;
     
     for (uint8_t i = 0; i < param_count; i++) {
@@ -152,7 +152,7 @@ uint24_t ezom_create_ast_block(ezom_ast_node_t* ast_node, uint24_t outer_context
     
     ezom_init_object(ptr, g_block_class, EZOM_TYPE_OBJECT);
     
-    ezom_block_t* block = (ezom_block_t*)ptr;
+    ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(ptr);
     block->outer_context = outer_context;
     block->code = (uint24_t)ast_node; // Store AST pointer in code field
     
@@ -170,7 +170,7 @@ uint24_t ezom_create_ast_block(ezom_ast_node_t* ast_node, uint24_t outer_context
 uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_count) {
     if (!block_ptr) return g_nil;
     
-    ezom_block_t* block = (ezom_block_t*)block_ptr;
+    ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(block_ptr);
     
     // Check argument count
     if (arg_count != block->param_count) {
@@ -253,12 +253,12 @@ uint24_t ezom_get_current_context(void) {
 
 bool ezom_is_block_object(uint24_t object_ptr) {
     if (!object_ptr) return false;
-    ezom_object_t* obj = (ezom_object_t*)object_ptr;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(object_ptr);
     return obj->class_ptr == g_block_class;
 }
 
 bool ezom_is_context_object(uint24_t object_ptr) {
     if (!object_ptr) return false;
-    ezom_object_t* obj = (ezom_object_t*)object_ptr;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(object_ptr);
     return obj->class_ptr == g_context_class;
 }

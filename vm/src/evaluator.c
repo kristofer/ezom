@@ -238,7 +238,7 @@ ezom_eval_result_t ezom_evaluate_identifier(ezom_ast_node_t* node, uint24_t cont
     if (strcmp(name, "self") == 0) {
         // Return current receiver
         if (context) {
-            ezom_context_t* ctx = (ezom_context_t*)context;
+            ezom_context_t* ctx = (ezom_context_t*)EZOM_OBJECT_PTR(context);
             return ezom_make_result(ctx->receiver);
         }
     }
@@ -343,7 +343,7 @@ ezom_eval_result_t ezom_evaluate_class_definition(ezom_ast_node_t* node, uint24_
     
     // Install class methods
     if (node->data.class_def.class_methods) {
-        ezom_class_t* class_struct = (ezom_class_t*)class_obj;
+        ezom_class_t* class_struct = (ezom_class_t*)EZOM_OBJECT_PTR(class_obj);
         uint24_t metaclass = class_struct->header.class_ptr; // Class's class
         ezom_install_methods_from_ast(metaclass, node->data.class_def.class_methods, true);
     }
@@ -586,7 +586,7 @@ void ezom_evaluator_debug_context(uint24_t context) {
         return;
     }
     
-    ezom_context_t* ctx = (ezom_context_t*)context;
+    ezom_context_t* ctx = (ezom_context_t*)EZOM_OBJECT_PTR(context);
     printf("Debug context: receiver=0x%06X, method=0x%06X, locals=%d\n",
            ctx->receiver, ctx->method, ctx->local_count);
 }
@@ -616,7 +616,7 @@ uint24_t ezom_create_class_with_inheritance(const char* name, uint24_t superclas
     // Initialize as class object
     ezom_init_object(class_ptr, g_class_class ? g_class_class : g_object_class, EZOM_TYPE_CLASS);
     
-    ezom_class_t* class_obj = (ezom_class_t*)class_ptr;
+    ezom_class_t* class_obj = (ezom_class_t*)EZOM_OBJECT_PTR(class_ptr);
     class_obj->superclass = superclass;
     class_obj->method_dict = ezom_create_method_dictionary(16);
     class_obj->instance_vars = 0; // TODO: Support instance variable names
@@ -625,7 +625,7 @@ uint24_t ezom_create_class_with_inheritance(const char* name, uint24_t superclas
     // Calculate instance size including superclass
     uint16_t super_size = sizeof(ezom_object_t);
     if (superclass) {
-        ezom_class_t* super = (ezom_class_t*)superclass;
+        ezom_class_t* super = (ezom_class_t*)EZOM_OBJECT_PTR(superclass);
         super_size = super->instance_size;
     }
     
@@ -640,7 +640,7 @@ uint24_t ezom_create_class_with_inheritance(const char* name, uint24_t superclas
 uint24_t ezom_create_instance(uint24_t class_ptr) {
     if (!class_ptr) return 0;
     
-    ezom_class_t* class_obj = (ezom_class_t*)class_ptr;
+    ezom_class_t* class_obj = (ezom_class_t*)EZOM_OBJECT_PTR(class_ptr);
     uint24_t instance_ptr = ezom_allocate(class_obj->instance_size);
     if (!instance_ptr) return 0;
     
@@ -652,8 +652,8 @@ uint24_t ezom_create_instance(uint24_t class_ptr) {
 void ezom_install_method_in_class(uint24_t class_ptr, const char* selector, uint24_t code, uint8_t arg_count, bool is_primitive) {
     if (!class_ptr) return;
     
-    ezom_class_t* class_obj = (ezom_class_t*)class_ptr;
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)class_obj->method_dict;
+    ezom_class_t* class_obj = (ezom_class_t*)EZOM_OBJECT_PTR(class_ptr);
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(class_obj->method_dict);
     if (!dict) return;
     
     // Check if method already exists (override)

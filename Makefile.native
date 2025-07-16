@@ -1,0 +1,86 @@
+# Native development Makefile for EZOM
+# Fast development before porting to ez80 Agon Light 2
+
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99 -g -O2 -DNATIVE_BUILD
+INCLUDES = -Ivm/include
+TARGET = ezom_native
+TEST_TARGET = test_native
+
+# Source files (updated paths)
+VM_SOURCES = vm/src/main.c vm/src/memory.c vm/src/object.c vm/src/objects.c \
+             vm/src/primitives.c vm/src/dispatch.c vm/src/bootstrap.c \
+             vm/src/lexer.c vm/src/parser.c vm/src/ast.c vm/src/evaluator.c \
+             vm/src/context.c vm/src/platform.c
+
+# Test sources
+TEST_SOURCES = vm/test_phase2_complete.c vm/src/memory.c vm/src/object.c vm/src/objects.c \
+               vm/src/primitives.c vm/src/dispatch.c vm/src/bootstrap.c \
+               vm/src/lexer.c vm/src/parser.c vm/src/ast.c vm/src/evaluator.c \
+               vm/src/context.c vm/src/platform.c
+
+ALL_OBJECTS = $(VM_SOURCES:.c=.o)
+TEST_OBJECTS = $(TEST_SOURCES:.c=.o)
+
+# Targets
+all: $(TARGET)
+
+$(TARGET): $(ALL_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "Built native EZOM: $(TARGET)"
+	@echo "Size: `ls -l $(TARGET) | awk '{print $$5}'` bytes"
+
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
+
+$(TEST_TARGET): $(TEST_OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $^
+	@echo "Built native test suite: $(TEST_TARGET)"
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
+
+clean:
+	rm -f $(ALL_OBJECTS) $(TEST_OBJECTS) $(TARGET) $(TEST_TARGET)
+	@echo "Cleaned native build files"
+
+run: $(TARGET)
+	@echo "Running native EZOM..."
+	./$(TARGET)
+
+debug: CFLAGS += -DDEBUG -fsanitize=address
+debug: $(TARGET)
+
+# Quick test specific areas
+test-memory: $(TARGET)
+	@echo "Testing memory management..."
+	./$(TARGET) --test-memory
+
+test-parser: $(TARGET)
+	@echo "Testing parser..."
+	./$(TARGET) --test-parser
+
+# Profile performance
+profile: CFLAGS += -pg
+profile: $(TARGET)
+
+# File dependencies (same as original but with vm/ prefix)
+vm/src/main.o: vm/include/ezom_memory.h vm/include/ezom_object.h vm/include/ezom_primitives.h vm/include/ezom_dispatch.h
+vm/src/memory.o: vm/include/ezom_memory.h vm/include/ezom_object.h
+vm/src/object.o: vm/include/ezom_object.h vm/include/ezom_memory.h
+vm/src/objects.o: vm/include/ezom_object.h vm/include/ezom_memory.h
+vm/src/primitives.o: vm/include/ezom_primitives.h vm/include/ezom_object.h
+vm/src/dispatch.o: vm/include/ezom_dispatch.h vm/include/ezom_object.h vm/include/ezom_primitives.h
+
+# Agon port build (for when ready)
+agon: CC = ez80-none-elf-clang
+agon: CFLAGS = -Wall -Oz -mllvm -profile-guided-section-prefix=false -D__ez80__
+agon: TARGET = ezom_agon.bin
+agon: $(TARGET)
+	@echo "Built Agon version: $(TARGET)"
+
+.PHONY: all clean run debug test profile agon test-memory test-parser
+debug_bootstrap_simple: debug_bootstrap_simple.c $(filter-out vm/src/main.o, $(ALL_OBJECTS))
+	$(CC) $(CFLAGS) -o debug_bootstrap_simple debug_bootstrap_simple.c $(filter-out vm/src/main.o, $(ALL_OBJECTS))
+	@echo "Built simple debug bootstrap test"
+

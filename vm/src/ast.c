@@ -4,6 +4,7 @@
 // ============================================================================
 
 #include "../include/ezom_ast.h"
+#include "../include/ezom_ast_memory.h"
 #include "../include/ezom_memory.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,11 +15,10 @@ static void ezom_ast_print_indent(int indent);
 static void ezom_ast_free_variable_list(ezom_ast_node_t* node);
 
 ezom_ast_node_t* ezom_ast_create(ezom_ast_type_t type) {
-    ezom_ast_node_t* node = malloc(sizeof(ezom_ast_node_t));
+    // Use AST memory pool instead of malloc
+    ezom_ast_node_t* node = ezom_ast_create_node(type);
     if (!node) return NULL;
     
-    memset(node, 0, sizeof(ezom_ast_node_t));
-    node->type = type;
     node->line = 0;
     node->column = 0;
     node->next = NULL;
@@ -30,7 +30,7 @@ ezom_ast_node_t* ezom_ast_create_class_def(char* name, ezom_ast_node_t* supercla
     ezom_ast_node_t* node = ezom_ast_create(AST_CLASS_DEF);
     if (!node) return NULL;
     
-    node->data.class_def.name = strdup(name);
+    node->data.class_def.name = ezom_ast_strdup(name);  // Use AST pool strdup
     node->data.class_def.superclass = superclass;
     node->data.class_def.instance_vars = NULL;
     node->data.class_def.instance_methods = NULL;
@@ -43,7 +43,7 @@ ezom_ast_node_t* ezom_ast_create_method_def(char* selector, bool is_class_method
     ezom_ast_node_t* node = ezom_ast_create(AST_METHOD_DEF);
     if (!node) return NULL;
     
-    node->data.method_def.selector = strdup(selector);
+    node->data.method_def.selector = ezom_ast_strdup(selector);  // Use AST pool strdup
     node->data.method_def.parameters = NULL;
     node->data.method_def.locals = NULL;
     node->data.method_def.body = NULL;
@@ -465,4 +465,41 @@ bool ezom_ast_validate(ezom_ast_node_t* node, char* error_buffer, size_t buffer_
     }
     
     return true;
+}
+
+// Simple AST creation functions for testing
+ezom_ast_node_t* ezom_ast_create_integer_literal(int value) {
+    ezom_ast_node_t* node = ezom_ast_create(AST_LITERAL);
+    if (!node) return NULL;
+    
+    node->data.literal.type = LITERAL_INTEGER;
+    node->data.literal.value.integer_value = (int16_t)value;
+    
+    printf("DEBUG: Created integer literal AST node: %d\n", value);
+    return node;
+}
+
+ezom_ast_node_t* ezom_ast_create_string_literal(char* value) {
+    ezom_ast_node_t* node = ezom_ast_create(AST_LITERAL);
+    if (!node) return NULL;
+    
+    node->data.literal.type = LITERAL_STRING;
+    node->data.literal.value.string_value = ezom_ast_strdup(value);
+    
+    printf("DEBUG: Created string literal AST node: '%s'\n", value);
+    return node;
+}
+
+ezom_ast_node_t* ezom_ast_create_binary_message(ezom_ast_node_t* receiver, char* selector, ezom_ast_node_t* argument) {
+    ezom_ast_node_t* node = ezom_ast_create(AST_BINARY_MESSAGE);
+    if (!node) return NULL;
+    
+    node->data.message_send.receiver = receiver;
+    node->data.message_send.selector = ezom_ast_strdup(selector);
+    node->data.message_send.arguments = argument;  // Single argument for binary message
+    node->data.message_send.is_super = false;
+    node->data.message_send.arg_count = 1;
+    
+    printf("DEBUG: Created binary message AST node: selector='%s'\n", selector);
+    return node;
 }

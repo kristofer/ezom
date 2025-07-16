@@ -26,7 +26,7 @@ void ezom_bootstrap_classes(void) {
         ezom_init_object(g_object_class, g_object_class, EZOM_TYPE_CLASS);
         ezom_log("Object class initialized\n");
         
-        ezom_class_t* object_class = (ezom_class_t*)g_object_class;
+        ezom_class_t* object_class = EZOM_OBJECT_PTR(g_object_class);
         object_class->superclass = 0; // No superclass
         ezom_log("About to create Object class method dictionary\n");
         object_class->method_dict = ezom_create_method_dictionary(8);
@@ -43,7 +43,7 @@ void ezom_bootstrap_classes(void) {
     if (g_symbol_class) {
         ezom_init_object(g_symbol_class, g_object_class, EZOM_TYPE_CLASS);
         
-        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
+        ezom_class_t* symbol_class = EZOM_OBJECT_PTR(g_symbol_class);
         symbol_class->superclass = g_object_class;
         symbol_class->method_dict = ezom_create_method_dictionary(4);
         symbol_class->instance_vars = 0;
@@ -58,7 +58,7 @@ void ezom_bootstrap_classes(void) {
     if (g_integer_class) {
         ezom_init_object(g_integer_class, g_object_class, EZOM_TYPE_CLASS);
         
-        ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
+        ezom_class_t* integer_class = EZOM_OBJECT_PTR(g_integer_class);
         integer_class->superclass = g_object_class;
         integer_class->method_dict = ezom_create_method_dictionary(16);
         integer_class->instance_vars = 0;
@@ -75,7 +75,7 @@ void ezom_bootstrap_classes(void) {
     if (g_string_class) {
         ezom_init_object(g_string_class, g_object_class, EZOM_TYPE_CLASS);
         
-        ezom_class_t* string_class = (ezom_class_t*)g_string_class;
+        ezom_class_t* string_class = EZOM_OBJECT_PTR(g_string_class);
         string_class->superclass = g_object_class;
         string_class->method_dict = ezom_create_method_dictionary(8);
         string_class->instance_vars = 0;
@@ -143,7 +143,7 @@ static void ezom_bootstrap_phase1_fundamentals(void) {
     // Step 1: Create nil as a minimal object with NO class initially
     g_nil = ezom_allocate(sizeof(ezom_object_t));
     if (g_nil) {
-        ezom_object_t* nil_obj = (ezom_object_t*)g_nil;
+        ezom_object_t* nil_obj = EZOM_OBJECT_PTR(g_nil);
         nil_obj->class_ptr = 0; // Bootstrap: temporarily no class
         nil_obj->hash = 0;
         nil_obj->flags = EZOM_TYPE_NIL;
@@ -153,13 +153,13 @@ static void ezom_bootstrap_phase1_fundamentals(void) {
     // Step 2: Create Object class as self-referential root
     g_object_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_object_class) {
-        ezom_object_t* obj_header = (ezom_object_t*)g_object_class;
+        ezom_object_t* obj_header = EZOM_OBJECT_PTR(g_object_class);
         obj_header->class_ptr = g_object_class; // Self-referential!
         obj_header->hash = ezom_compute_hash(g_object_class);
         obj_header->flags = EZOM_TYPE_CLASS;
         
-        ezom_class_t* object_class = (ezom_class_t*)g_object_class;
-        object_class->superclass = g_nil; // Use nil as root
+        ezom_class_t* object_class = EZOM_OBJECT_PTR(g_object_class);
+        object_class->superclass = 0; // Object is the root class, no superclass
         object_class->method_dict = 0; // Bootstrap: no methods yet
         object_class->instance_vars = 0;
         object_class->instance_size = sizeof(ezom_object_t);
@@ -169,7 +169,7 @@ static void ezom_bootstrap_phase1_fundamentals(void) {
     
     // Step 3: Fix nil's class pointer now that we have Object class
     if (g_nil && g_object_class) {
-        ezom_object_t* nil_obj = (ezom_object_t*)g_nil;
+        ezom_object_t* nil_obj = EZOM_OBJECT_PTR(g_nil);
         nil_obj->class_ptr = g_object_class; // Nil is instance of Object
         printf("   Nil class pointer fixed\n");
     }
@@ -177,7 +177,7 @@ static void ezom_bootstrap_phase1_fundamentals(void) {
     // Step 4: Create true/false as minimal objects
     g_true = ezom_allocate(sizeof(ezom_object_t));
     if (g_true) {
-        ezom_object_t* true_obj = (ezom_object_t*)g_true;
+        ezom_object_t* true_obj = (ezom_object_t*)EZOM_OBJECT_PTR(g_true);
         true_obj->class_ptr = g_object_class; // Temporary class
         true_obj->hash = 1;
         true_obj->flags = EZOM_TYPE_BOOLEAN;
@@ -186,7 +186,7 @@ static void ezom_bootstrap_phase1_fundamentals(void) {
     
     g_false = ezom_allocate(sizeof(ezom_object_t));
     if (g_false) {
-        ezom_object_t* false_obj = (ezom_object_t*)g_false;
+        ezom_object_t* false_obj = (ezom_object_t*)EZOM_OBJECT_PTR(g_false);
         false_obj->class_ptr = g_object_class; // Temporary class
         false_obj->hash = 0;
         false_obj->flags = EZOM_TYPE_BOOLEAN;
@@ -202,7 +202,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_symbol_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_symbol_class) {
         ezom_init_object(g_symbol_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
+        ezom_class_t* symbol_class = EZOM_OBJECT_PTR(g_symbol_class);
         symbol_class->superclass = g_object_class;
         symbol_class->method_dict = 0; // Bootstrap: defer method dictionary
         symbol_class->instance_vars = 0;
@@ -215,7 +215,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_integer_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_integer_class) {
         ezom_init_object(g_integer_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
+        ezom_class_t* integer_class = EZOM_OBJECT_PTR(g_integer_class);
         integer_class->superclass = g_object_class;
         integer_class->method_dict = 0; // Bootstrap: defer method dictionary
         integer_class->instance_vars = 0;
@@ -227,7 +227,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_string_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_string_class) {
         ezom_init_object(g_string_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* string_class = (ezom_class_t*)g_string_class;
+        ezom_class_t* string_class = EZOM_OBJECT_PTR(g_string_class);
         string_class->superclass = g_object_class;
         string_class->method_dict = 0; // Bootstrap: defer method dictionary
         string_class->instance_vars = 0;
@@ -240,7 +240,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_boolean_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_boolean_class) {
         ezom_init_object(g_boolean_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* boolean_class = (ezom_class_t*)g_boolean_class;
+        ezom_class_t* boolean_class = EZOM_OBJECT_PTR(g_boolean_class);
         boolean_class->superclass = g_object_class;
         boolean_class->method_dict = 0;
         boolean_class->instance_vars = 0;
@@ -252,7 +252,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_true_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_true_class) {
         ezom_init_object(g_true_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* true_class = (ezom_class_t*)g_true_class;
+        ezom_class_t* true_class = EZOM_OBJECT_PTR(g_true_class);
         true_class->superclass = g_boolean_class;
         true_class->method_dict = 0;
         true_class->instance_vars = 0;
@@ -264,7 +264,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_false_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_false_class) {
         ezom_init_object(g_false_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* false_class = (ezom_class_t*)g_false_class;
+        ezom_class_t* false_class = EZOM_OBJECT_PTR(g_false_class);
         false_class->superclass = g_boolean_class;
         false_class->method_dict = 0;
         false_class->instance_vars = 0;
@@ -275,13 +275,13 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     
     // Fix true/false objects to have proper classes
     if (g_true && g_true_class) {
-        ezom_object_t* true_obj = (ezom_object_t*)g_true;
+        ezom_object_t* true_obj = (ezom_object_t*)EZOM_OBJECT_PTR(g_true);
         true_obj->class_ptr = g_true_class;
         printf("   True object class fixed\n");
     }
     
     if (g_false && g_false_class) {
-        ezom_object_t* false_obj = (ezom_object_t*)g_false;
+        ezom_object_t* false_obj = (ezom_object_t*)EZOM_OBJECT_PTR(g_false);
         false_obj->class_ptr = g_false_class;
         printf("   False object class fixed\n");
     }
@@ -290,7 +290,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_array_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_array_class) {
         ezom_init_object(g_array_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* array_class = (ezom_class_t*)g_array_class;
+        ezom_class_t* array_class = EZOM_OBJECT_PTR(g_array_class);
         array_class->superclass = g_object_class;
         array_class->method_dict = 0;
         array_class->instance_vars = 0;
@@ -302,7 +302,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_block_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_block_class) {
         ezom_init_object(g_block_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* block_class = (ezom_class_t*)g_block_class;
+        ezom_class_t* block_class = EZOM_OBJECT_PTR(g_block_class);
         block_class->superclass = g_object_class;
         block_class->method_dict = 0;
         block_class->instance_vars = 0;
@@ -314,7 +314,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_context_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_context_class) {
         ezom_init_object(g_context_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* context_class = (ezom_class_t*)g_context_class;
+        ezom_class_t* context_class = EZOM_OBJECT_PTR(g_context_class);
         context_class->superclass = g_object_class;
         context_class->method_dict = 0;
         context_class->instance_vars = 0;
@@ -327,7 +327,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
     g_nil_class = ezom_allocate(sizeof(ezom_class_t));
     if (g_nil_class) {
         ezom_init_object(g_nil_class, g_object_class, EZOM_TYPE_CLASS);
-        ezom_class_t* nil_class = (ezom_class_t*)g_nil_class;
+        ezom_class_t* nil_class = EZOM_OBJECT_PTR(g_nil_class);
         nil_class->superclass = g_object_class;
         nil_class->method_dict = 0;
         nil_class->instance_vars = 0;
@@ -336,7 +336,7 @@ static void ezom_bootstrap_phase2_hierarchy(void) {
         
         // Fix nil object to have proper class
         if (g_nil) {
-            ezom_object_t* nil_obj = (ezom_object_t*)g_nil;
+            ezom_object_t* nil_obj = EZOM_OBJECT_PTR(g_nil);
             nil_obj->class_ptr = g_nil_class;
             printf("   Nil class created and nil object fixed\n");
         }
@@ -360,7 +360,7 @@ static void ezom_bootstrap_phase3_methods(void) {
     if (g_object_class && g_symbol_class) {
         printf("   Condition passed - creating method dictionaries...\n");
         ezom_log("   Condition passed - creating method dictionaries...\n");
-        ezom_class_t* object_class = (ezom_class_t*)g_object_class;
+        ezom_class_t* object_class = EZOM_OBJECT_PTR(g_object_class);
         object_class->method_dict = ezom_create_method_dictionary(8);
         printf("   Object class method dictionary created at 0x%06lX\n", (unsigned long)object_class->method_dict);
         ezom_log("   Object class method dictionary created at 0x%06lX\n", (unsigned long)object_class->method_dict);
@@ -372,62 +372,62 @@ static void ezom_bootstrap_phase3_methods(void) {
     
     // Create Symbol class method dictionary
     if (g_symbol_class) {
-        ezom_class_t* symbol_class = (ezom_class_t*)g_symbol_class;
+        ezom_class_t* symbol_class = EZOM_OBJECT_PTR(g_symbol_class);
         symbol_class->method_dict = ezom_create_method_dictionary(4);
         printf("   Symbol class method dictionary created at 0x%06lX\n", (unsigned long)symbol_class->method_dict);
         ezom_log("   Symbol class method dictionary created at 0x%06lX\n", (unsigned long)symbol_class->method_dict);
     }
     
     if (g_integer_class && g_symbol_class) {
-        ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
+        ezom_class_t* integer_class = EZOM_OBJECT_PTR(g_integer_class);
         integer_class->method_dict = ezom_create_method_dictionary(16);
         printf("   Integer class method dictionary created\n");
     }
     
     if (g_string_class && g_symbol_class) {
-        ezom_class_t* string_class = (ezom_class_t*)g_string_class;
+        ezom_class_t* string_class = EZOM_OBJECT_PTR(g_string_class);
         string_class->method_dict = ezom_create_method_dictionary(8);
         printf("   String class method dictionary created\n");
     }
     
     if (g_boolean_class && g_symbol_class) {
-        ezom_class_t* boolean_class = (ezom_class_t*)g_boolean_class;
+        ezom_class_t* boolean_class = EZOM_OBJECT_PTR(g_boolean_class);
         boolean_class->method_dict = ezom_create_method_dictionary(8);
         printf("   Boolean class method dictionary created\n");
     }
     
     if (g_true_class && g_symbol_class) {
-        ezom_class_t* true_class = (ezom_class_t*)g_true_class;
+        ezom_class_t* true_class = EZOM_OBJECT_PTR(g_true_class);
         true_class->method_dict = ezom_create_method_dictionary(8);
         printf("   True class method dictionary created\n");
     }
     
     if (g_false_class && g_symbol_class) {
-        ezom_class_t* false_class = (ezom_class_t*)g_false_class;
+        ezom_class_t* false_class = EZOM_OBJECT_PTR(g_false_class);
         false_class->method_dict = ezom_create_method_dictionary(8);
         printf("   False class method dictionary created\n");
     }
     
     if (g_array_class && g_symbol_class) {
-        ezom_class_t* array_class = (ezom_class_t*)g_array_class;
+        ezom_class_t* array_class = EZOM_OBJECT_PTR(g_array_class);
         array_class->method_dict = ezom_create_method_dictionary(16);
         printf("   Array class method dictionary created\n");
     }
     
     if (g_block_class && g_symbol_class) {
-        ezom_class_t* block_class = (ezom_class_t*)g_block_class;
+        ezom_class_t* block_class = EZOM_OBJECT_PTR(g_block_class);
         block_class->method_dict = ezom_create_method_dictionary(8);
         printf("   Block class method dictionary created\n");
     }
     
     if (g_context_class && g_symbol_class) {
-        ezom_class_t* context_class = (ezom_class_t*)g_context_class;
+        ezom_class_t* context_class = EZOM_OBJECT_PTR(g_context_class);
         context_class->method_dict = ezom_create_method_dictionary(4);
         printf("   Context class method dictionary created\n");
     }
     
     if (g_nil_class && g_symbol_class) {
-        ezom_class_t* nil_class = (ezom_class_t*)g_nil_class;
+        ezom_class_t* nil_class = EZOM_OBJECT_PTR(g_nil_class);
         nil_class->method_dict = ezom_create_method_dictionary(4);
         printf("   Nil class method dictionary created\n");
     }
@@ -494,11 +494,7 @@ static void add_method_to_dict(ezom_method_dict_t* dict, const char* selector, u
         return;
     }
     
-    if ((unsigned long)dict < 0x042000 || (unsigned long)dict > 0x050000) {
-        printf(" ERROR: Dictionary pointer out of expected range!\n");
-        ezom_log(" ERROR: Dictionary pointer out of expected range!\n");
-        return;
-    }
+    // Skip pointer range check since dict is already converted from ezom pointer
     
     if (dict->size < dict->capacity) {
         printf(" Creating method at index %d...", dict->size);
@@ -563,7 +559,7 @@ void ezom_install_object_methods(void) {
         return;
     }
     
-    ezom_class_t* object_class = (ezom_class_t*)g_object_class;
+    ezom_class_t* object_class = EZOM_OBJECT_PTR(g_object_class);
     printf("   object_class->method_dict = 0x%06lX\n", (unsigned long)object_class->method_dict);
     ezom_log("   object_class->method_dict = 0x%06lX\n", (unsigned long)object_class->method_dict);
     
@@ -573,7 +569,7 @@ void ezom_install_object_methods(void) {
         return;
     }
     
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)object_class->method_dict;
+    ezom_method_dict_t* dict = EZOM_OBJECT_PTR(object_class->method_dict);
     printf("   dict capacity: %d, size: %d\n", dict->capacity, dict->size);
     ezom_log("   dict capacity: %d, size: %d\n", dict->capacity, dict->size);
     
@@ -590,12 +586,12 @@ void ezom_install_object_methods(void) {
 
 void ezom_install_integer_methods(void) {
     printf("   Installing Integer methods...\n");
-    ezom_class_t* integer_class = (ezom_class_t*)g_integer_class;
+    ezom_class_t* integer_class = EZOM_OBJECT_PTR(g_integer_class);
     if (!integer_class) {
         printf("   ERROR: g_integer_class is NULL!\n");
         return;
     }
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)integer_class->method_dict;
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(integer_class->method_dict);
     if (!dict) {
         printf("   ERROR: Integer class method_dict is NULL!\n");
         return;
@@ -636,8 +632,8 @@ void ezom_install_integer_methods(void) {
 }
 
 void ezom_install_string_methods(void) {
-    ezom_class_t* string_class = (ezom_class_t*)g_string_class;
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)string_class->method_dict;
+    ezom_class_t* string_class = EZOM_OBJECT_PTR(g_string_class);
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(string_class->method_dict);
     
     add_method_to_dict(dict, "length", PRIM_STRING_LENGTH, 0);
     add_method_to_dict(dict, "+", PRIM_STRING_CONCAT, 1);
@@ -648,8 +644,8 @@ void ezom_install_string_methods(void) {
 }
 
 void ezom_install_array_methods(void) {
-    ezom_class_t* array_class = (ezom_class_t*)g_array_class;
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)array_class->method_dict;
+    ezom_class_t* array_class = EZOM_OBJECT_PTR(g_array_class);
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(array_class->method_dict);
     
     add_method_to_dict(dict, "at:", PRIM_ARRAY_AT, 1);
     add_method_to_dict(dict, "at:put:", PRIM_ARRAY_AT_PUT, 2);
@@ -681,7 +677,7 @@ void ezom_install_boolean_methods(void) {
     }
     
     // Install methods for True class
-    ezom_class_t* true_class = (ezom_class_t*)g_true_class;
+    ezom_class_t* true_class = EZOM_OBJECT_PTR(g_true_class);
     printf("   true_class->method_dict = 0x%06lX\n", (unsigned long)true_class->method_dict);
     ezom_log("   true_class->method_dict = 0x%06lX\n", (unsigned long)true_class->method_dict);
     
@@ -691,7 +687,7 @@ void ezom_install_boolean_methods(void) {
         return;
     }
     
-    ezom_method_dict_t* true_dict = (ezom_method_dict_t*)true_class->method_dict;
+    ezom_method_dict_t* true_dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(true_class->method_dict);
     
     add_method_to_dict(true_dict, "ifTrue:", PRIM_TRUE_IF_TRUE, 1);
     add_method_to_dict(true_dict, "ifFalse:", PRIM_TRUE_IF_FALSE, 1);
@@ -700,7 +696,7 @@ void ezom_install_boolean_methods(void) {
     add_method_to_dict(true_dict, "println", PRIM_OBJECT_PRINTLN, 0);
     
     // Install methods for False class
-    ezom_class_t* false_class = (ezom_class_t*)g_false_class;
+    ezom_class_t* false_class = EZOM_OBJECT_PTR(g_false_class);
     printf("   false_class->method_dict = 0x%06lX\n", (unsigned long)false_class->method_dict);
     ezom_log("   false_class->method_dict = 0x%06lX\n", (unsigned long)false_class->method_dict);
     
@@ -710,7 +706,7 @@ void ezom_install_boolean_methods(void) {
         return;
     }
     
-    ezom_method_dict_t* false_dict = (ezom_method_dict_t*)false_class->method_dict;
+    ezom_method_dict_t* false_dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(false_class->method_dict);
     
     add_method_to_dict(false_dict, "ifTrue:", PRIM_FALSE_IF_TRUE, 1);
     add_method_to_dict(false_dict, "ifFalse:", PRIM_FALSE_IF_FALSE, 1);
@@ -723,8 +719,8 @@ void ezom_install_boolean_methods(void) {
 }
 
 void ezom_install_block_methods(void) {
-    ezom_class_t* block_class = (ezom_class_t*)g_block_class;
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)block_class->method_dict;
+    ezom_class_t* block_class = EZOM_OBJECT_PTR(g_block_class);
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(block_class->method_dict);
     
     add_method_to_dict(dict, "value", PRIM_BLOCK_VALUE, 0);
     add_method_to_dict(dict, "value:", PRIM_BLOCK_VALUE_WITH, 1);

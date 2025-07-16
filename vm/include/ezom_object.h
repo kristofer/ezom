@@ -1,25 +1,20 @@
 // ============================================================================
-// File: src/include/ezom_object.h
+// File: vm/include/ezom_object.h
 // Core object system definitions
 // ============================================================================
 
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
+#include "ezom_platform.h"
 
-// ez80 24-bit address type support for AgonDev toolchain
-#ifndef uint24_t
-#ifdef __ez80__
-// For AgonDev ez80 toolchain - use built-in 24-bit type with masking
-typedef unsigned long uint24_raw_t;
-#define uint24_t uint24_raw_t
-// Macro to ensure 24-bit values are properly masked
-#define UINT24_MASK(x) ((x) & 0xFFFFFFUL)
+// Object pointer conversion macros
+#ifdef EZOM_PLATFORM_NATIVE
+#define EZOM_OBJECT_PTR(addr) ((ezom_object_t*)ezom_ptr_to_native(addr))
+#define EZOM_OBJECT_ADDR(ptr) (ezom_ptr_from_native(ptr))
 #else
-// For other platforms (testing)
-typedef uint32_t uint24_t;
-#define UINT24_MASK(x) ((x) & 0xFFFFFFUL)
-#endif
+#define EZOM_OBJECT_PTR(addr) ((ezom_object_t*)(addr))
+#define EZOM_OBJECT_ADDR(ptr) ((uint24_t)(ptr))
 #endif
 
 // Forward declarations

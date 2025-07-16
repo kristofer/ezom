@@ -26,7 +26,7 @@ void ezom_init_object_system(void) {
 void ezom_init_object(uint24_t obj_ptr, uint24_t class_ptr, uint8_t type) {
     if (!obj_ptr) return; // Safety check
     
-    ezom_object_t* obj = (ezom_object_t*)obj_ptr;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(obj_ptr);
     obj->class_ptr = class_ptr; // Allow 0 during bootstrap
     obj->hash = ezom_compute_hash(obj_ptr);
     obj->flags = type;
@@ -36,7 +36,7 @@ void ezom_init_object(uint24_t obj_ptr, uint24_t class_ptr, uint8_t type) {
 void ezom_init_object_bootstrap(uint24_t obj_ptr, uint24_t class_ptr, uint8_t type) {
     if (!obj_ptr) return;
     
-    ezom_object_t* obj = (ezom_object_t*)obj_ptr;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(obj_ptr);
     obj->class_ptr = class_ptr;
     obj->hash = class_ptr ? ezom_compute_hash(obj_ptr) : (uint16_t)(obj_ptr & 0xFFFF);
     obj->flags = type;
@@ -51,14 +51,14 @@ uint16_t ezom_compute_hash(uint24_t obj_ptr) {
 }
 
 uint16_t ezom_get_object_size(uint24_t obj_ptr) {
-    ezom_object_t* obj = (ezom_object_t*)obj_ptr;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(obj_ptr);
     
     switch (obj->flags & 0xF0) {
         case EZOM_TYPE_INTEGER:
             return sizeof(ezom_integer_t);
             
         case EZOM_TYPE_STRING: {
-            ezom_string_t* str = (ezom_string_t*)obj_ptr;
+            ezom_string_t* str = (ezom_string_t*)EZOM_OBJECT_PTR(obj_ptr);
             return sizeof(ezom_string_t) + str->length + 1;
         }
         

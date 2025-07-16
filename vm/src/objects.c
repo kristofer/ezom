@@ -23,7 +23,7 @@ uint24_t ezom_create_integer(int16_t value) {
     uint24_t class_ptr = g_integer_class ? g_integer_class : g_object_class;
     if (!class_ptr) {
         // Ultra-bootstrap: create minimal object without class
-        ezom_object_t* header = (ezom_object_t*)ptr;
+        ezom_object_t* header = (ezom_object_t*)EZOM_OBJECT_PTR(ptr);
         header->class_ptr = 0; // Bootstrap: no class initially
         header->hash = (uint16_t)(value & 0xFFFF);
         header->flags = EZOM_TYPE_INTEGER;
@@ -33,7 +33,7 @@ uint24_t ezom_create_integer(int16_t value) {
         printf("DEBUG: ezom_init_object completed with class=0x%06X\n", class_ptr);
     }
     
-    ezom_integer_t* obj = (ezom_integer_t*)ptr;
+    ezom_integer_t* obj = (ezom_integer_t*)EZOM_OBJECT_PTR(ptr);
     printf("DEBUG: Setting obj->value = %d\n", value);
     obj->value = value;
     
@@ -61,15 +61,14 @@ uint24_t ezom_create_string(const char* data, uint16_t length) {
     } else {
         printf("DEBUG: Using ultra-bootstrap mode\n");
         // Ultra-bootstrap: create minimal object without class
-        ezom_object_t* header = (ezom_object_t*)ptr;
+        ezom_object_t* header = (ezom_object_t*)EZOM_OBJECT_PTR(ptr);
         header->class_ptr = 0;
         header->hash = ezom_compute_hash(ptr);
         header->flags = EZOM_TYPE_STRING;
         printf("DEBUG: Ultra-bootstrap completed\n");
     }
     
-    printf("DEBUG: Setting up string data\n");
-    ezom_string_t* obj = (ezom_string_t*)ptr;
+    ezom_string_t* obj = (ezom_string_t*)EZOM_OBJECT_PTR(ptr);
     obj->length = length;
     
     printf("DEBUG: About to memcpy data\n");
@@ -93,12 +92,12 @@ uint24_t ezom_create_symbol(const char* data, uint16_t length) {
     ezom_init_object(ptr, g_symbol_class, EZOM_TYPE_OBJECT);
     printf("DEBUG: ezom_init_object completed\n");
     
-    ezom_symbol_t* obj = (ezom_symbol_t*)ptr;
+    ezom_symbol_t* obj = (ezom_symbol_t*)EZOM_OBJECT_PTR(ptr);
     printf("DEBUG: obj pointer = 0x%06X\n", (uint24_t)obj);
     
     // FIXED: Use explicit pointer arithmetic instead of flexible array member
     // Calculate data pointer manually to avoid ez80 compiler issues
-    char* data_ptr = (char*)(ptr + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    char* data_ptr = (char*)EZOM_OBJECT_PTR(ptr + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
     printf("DEBUG: Calculated data_ptr = 0x%06X\n", (uint24_t)data_ptr);
     printf("DEBUG: Expected offset = %d bytes\n", sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
     
@@ -128,13 +127,13 @@ uint24_t ezom_create_method_dictionary(uint16_t initial_capacity) {
         ezom_init_object(ptr, g_object_class, EZOM_TYPE_OBJECT);
     } else {
         // Ultra-bootstrap: create minimal object
-        ezom_object_t* header = (ezom_object_t*)ptr;
+        ezom_object_t* header = EZOM_OBJECT_PTR(ptr);
         header->class_ptr = 0;
         header->hash = ezom_compute_hash(ptr);
         header->flags = EZOM_TYPE_OBJECT;
     }
     
-    ezom_method_dict_t* dict = (ezom_method_dict_t*)ptr;
+    ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(ptr);
     dict->size = 0;
     dict->capacity = initial_capacity;
     
@@ -149,7 +148,7 @@ uint24_t ezom_create_array(uint16_t size) {
     
     ezom_init_object(ptr, g_array_class, EZOM_TYPE_ARRAY);
     
-    ezom_array_t* obj = (ezom_array_t*)ptr;
+    ezom_array_t* obj = (ezom_array_t*)EZOM_OBJECT_PTR(ptr);
     obj->size = size;
     
     // Initialize elements to nil
@@ -168,7 +167,7 @@ uint24_t ezom_create_block(uint8_t param_count, uint8_t local_count, uint24_t ou
     
     ezom_init_object(ptr, g_block_class, EZOM_TYPE_BLOCK);
     
-    ezom_block_t* obj = (ezom_block_t*)ptr;
+    ezom_block_t* obj = (ezom_block_t*)EZOM_OBJECT_PTR(ptr);
     obj->outer_context = outer_context;
     obj->code = 0; // Will be set by parser
     obj->param_count = param_count;
@@ -190,7 +189,7 @@ uint24_t ezom_create_context(uint24_t outer_context, uint8_t local_count) {
     
     ezom_init_object(ptr, g_context_class, EZOM_TYPE_OBJECT);
     
-    ezom_context_t* obj = (ezom_context_t*)ptr;
+    ezom_context_t* obj = (ezom_context_t*)EZOM_OBJECT_PTR(ptr);
     obj->outer_context = outer_context;
     obj->method = 0;
     obj->receiver = 0;
@@ -212,11 +211,11 @@ uint24_t ezom_object_to_string(uint24_t obj_ptr) {
         return ezom_create_string("nil", 3);
     }
     
-    ezom_object_t* obj = (ezom_object_t*)obj_ptr;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(obj_ptr);
     
     switch (obj->flags & 0xF0) {
         case EZOM_TYPE_INTEGER: {
-            ezom_integer_t* int_obj = (ezom_integer_t*)obj_ptr;
+            ezom_integer_t* int_obj = (ezom_integer_t*)EZOM_OBJECT_PTR(obj_ptr);
             char buffer[16];
             sprintf(buffer, "%d", int_obj->value);
             return ezom_create_string(buffer, strlen(buffer));
@@ -234,7 +233,7 @@ uint24_t ezom_object_to_string(uint24_t obj_ptr) {
             break;
             
         case EZOM_TYPE_ARRAY: {
-            ezom_array_t* array = (ezom_array_t*)obj_ptr;
+            ezom_array_t* array = (ezom_array_t*)EZOM_OBJECT_PTR(obj_ptr);
             char buffer[64];
             sprintf(buffer, "Array[%d]", array->size);
             return ezom_create_string(buffer, strlen(buffer));

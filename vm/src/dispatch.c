@@ -48,27 +48,55 @@ extern uint24_t g_nil;
 
 // Helper function to compare two symbols by content
 bool ezom_symbols_equal(uint24_t sym1, uint24_t sym2) {
-    if (sym1 == sym2) return true;  // Same object
-    if (!sym1 || !sym2) return false;  // One is null
+    printf("DEBUG: ezom_symbols_equal comparing 0x%06lX and 0x%06lX\n", 
+           (unsigned long)sym1, (unsigned long)sym2);
+    
+    if (sym1 == sym2) {
+        printf("DEBUG: Same object - equal\n");
+        return true;  // Same object
+    }
+    if (!sym1 || !sym2) {
+        printf("DEBUG: One is null - not equal\n");
+        return false;  // One is null
+    }
     
     // Check if pointers are in valid memory range (ez80 heap: 0x042000-0x04FFFF)
     if (sym1 < 0x042000 || sym1 > 0x04FFFF) {
+        printf("DEBUG: sym1 out of range - not equal\n");
         return false;
     }
     if (sym2 < 0x042000 || sym2 > 0x04FFFF) {
+        printf("DEBUG: sym2 out of range - not equal\n");
         return false;
     }
     
-    ezom_symbol_t* s1 = (ezom_symbol_t*)sym1;
-    ezom_symbol_t* s2 = (ezom_symbol_t*)sym2;
+    ezom_symbol_t* s1 = (ezom_symbol_t*)EZOM_OBJECT_PTR(sym1);
+    ezom_symbol_t* s2 = (ezom_symbol_t*)EZOM_OBJECT_PTR(sym2);
     
-    if (s1->length != s2->length) return false;
+    printf("DEBUG: s1->length=%d, s2->length=%d\n", s1->length, s2->length);
+    
+    if (s1->length != s2->length) {
+        printf("DEBUG: Different lengths - not equal\n");
+        return false;
+    }
     
     // FIXED: Use explicit pointer arithmetic instead of flexible array member
-    char* s1_data = (char*)(sym1 + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
-    char* s2_data = (char*)(sym2 + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    char* s1_data = (char*)EZOM_OBJECT_PTR(sym1 + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    char* s2_data = (char*)EZOM_OBJECT_PTR(sym2 + sizeof(ezom_object_t) + sizeof(uint16_t) + sizeof(uint16_t));
     
-    return strncmp(s1_data, s2_data, s1->length) == 0;
+    printf("DEBUG: Comparing strings: '");
+    for (int i = 0; i < s1->length && i < 10; i++) {
+        printf("%c", s1_data[i]);
+    }
+    printf("' vs '");
+    for (int i = 0; i < s2->length && i < 10; i++) {
+        printf("%c", s2_data[i]);
+    }
+    printf("'\n");
+    
+    bool result = strncmp(s1_data, s2_data, s1->length) == 0;
+    printf("DEBUG: String comparison result: %s\n", result ? "equal" : "not equal");
+    return result;
 }
 
 ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {
@@ -94,19 +122,49 @@ ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {
         return result;
     }
     
-    ezom_class_t* current_class = (ezom_class_t*)class_ptr;
+    ezom_class_t* current_class = (ezom_class_t*)EZOM_OBJECT_PTR(class_ptr);
+    uint24_t original_class = class_ptr;
+    int depth = 0;
+    int max_depth = 10; // Safety limit to prevent infinite loops
     
-    while (current_class) {
+    while (current_class && depth < max_depth) {
+        printf("DEBUG: Checking class %p (depth %d)\n", 
+               (void*)current_class, depth);
+        ezom_log("DEBUG: Checking class %p (depth %d)\n", 
+                 (void*)current_class, depth);
+        
         if (!current_class->method_dict) {
+            printf("DEBUG: No method dictionary, moving to superclass 0x%06lX\n",
+                   (unsigned long)current_class->superclass);
+            ezom_log("DEBUG: No method dictionary, moving to superclass 0x%06lX\n",
+                     (unsigned long)current_class->superclass);
+            
+            // Check for circular reference
+            if (current_class->superclass == original_class) {
+                printf("DEBUG: CIRCULAR CLASS HIERARCHY DETECTED - breaking loop\n");
+                ezom_log("DEBUG: CIRCULAR CLASS HIERARCHY DETECTED - breaking loop\n");
+                break;
+            }
+            
             // Move to superclass
-            current_class = (ezom_class_t*)current_class->superclass;
+            if (current_class->superclass) {
+                current_class = (ezom_class_t*)EZOM_OBJECT_PTR(current_class->superclass);
+            } else {
+                current_class = NULL;
+            }
+            depth++;
             continue;
         }
         
-        ezom_method_dict_t* dict = (ezom_method_dict_t*)current_class->method_dict;
+        ezom_method_dict_t* dict = (ezom_method_dict_t*)EZOM_OBJECT_PTR(current_class->method_dict);
+        printf("DEBUG: Method dictionary has %d methods\n", dict->size);
+        ezom_log("DEBUG: Method dictionary has %d methods\n", dict->size);
         
         // Linear search in method dictionary
         for (uint16_t i = 0; i < dict->size; i++) {
+            printf("DEBUG: Comparing method %d: selector=0x%06lX\n", 
+                   i, (unsigned long)dict->methods[i].selector);
+            
             // Compare symbol content, not addresses
             if (ezom_symbols_equal(dict->methods[i].selector, selector)) {
                 printf("DEBUG: Found method at index %d\n", i);
@@ -121,7 +179,7 @@ ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {
                          dict->methods[i].flags);
                 
                 result.method = &dict->methods[i];
-                result.class_ptr = (uint24_t)current_class;
+                result.class_ptr = class_ptr; // Use original class_ptr instead of casting
                 result.is_primitive = (dict->methods[i].flags & EZOM_METHOD_PRIMITIVE) != 0;
                 
                 printf("DEBUG: Returning method=0x%06lX, class_ptr=0x%06lX, is_primitive=%d\n",
@@ -133,10 +191,34 @@ ezom_method_lookup_t ezom_lookup_method(uint24_t class_ptr, uint24_t selector) {
             }
         }
         
+        printf("DEBUG: Method not found in this class, moving to superclass 0x%06lX\n",
+               (unsigned long)current_class->superclass);
+        ezom_log("DEBUG: Method not found in this class, moving to superclass 0x%06lX\n",
+                 (unsigned long)current_class->superclass);
+        
+        // Check for circular reference
+        if (current_class->superclass == original_class) {
+            printf("DEBUG: CIRCULAR CLASS HIERARCHY DETECTED - breaking loop\n");
+            ezom_log("DEBUG: CIRCULAR CLASS HIERARCHY DETECTED - breaking loop\n");
+            break;
+        }
+        
         // Move to superclass
-        current_class = (ezom_class_t*)current_class->superclass;
+        if (current_class->superclass) {
+            current_class = (ezom_class_t*)EZOM_OBJECT_PTR(current_class->superclass);
+        } else {
+            current_class = NULL;
+        }
+        depth++;
     }
     
+    if (depth >= max_depth) {
+        printf("DEBUG: Maximum depth reached (%d) - possible infinite loop\n", max_depth);
+        ezom_log("DEBUG: Maximum depth reached (%d) - possible infinite loop\n", max_depth);
+    }
+    
+    printf("DEBUG: Method not found anywhere in hierarchy\n");
+    ezom_log("DEBUG: Method not found anywhere in hierarchy\n");
     return result;  // Method not found
 }
 
@@ -169,7 +251,7 @@ uint24_t ezom_send_message(ezom_message_t* msg) {
         return 0;
     }
     
-    ezom_object_t* receiver = (ezom_object_t*)msg->receiver;
+    ezom_object_t* receiver = (ezom_object_t*)EZOM_OBJECT_PTR(msg->receiver);
     
     // Look up method
     ezom_method_lookup_t lookup = ezom_lookup_method(receiver->class_ptr, msg->selector);

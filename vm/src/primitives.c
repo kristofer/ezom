@@ -11,6 +11,10 @@
 #include <stdlib.h>
 
 // Enhanced global class pointers
+extern uint24_t g_object_class;
+extern uint24_t g_integer_class;
+extern uint24_t g_string_class;
+extern uint24_t g_symbol_class;
 extern uint24_t g_array_class;
 extern uint24_t g_block_class;
 extern uint24_t g_boolean_class;
@@ -129,7 +133,7 @@ void ezom_init_primitives(void) {
 
 // Object>>class
 uint24_t prim_object_class(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    ezom_object_t* obj = (ezom_object_t*)receiver;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
     return obj->class_ptr;
 }
 
@@ -143,7 +147,7 @@ uint24_t prim_object_equals(uint24_t receiver, uint24_t* args, uint8_t arg_count
 
 // Object>>hash
 uint24_t prim_object_hash(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    ezom_object_t* obj = (ezom_object_t*)receiver;
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
     return ezom_create_integer(obj->hash);
 }
 
@@ -152,7 +156,7 @@ uint24_t prim_object_println(uint24_t receiver, uint24_t* args, uint8_t arg_coun
     // Convert object to string and print
     uint24_t str = ezom_object_to_string(receiver);
     if (str) {
-        ezom_string_t* string_obj = (ezom_string_t*)str;
+        ezom_string_t* string_obj = (ezom_string_t*)EZOM_OBJECT_PTR(str);
         printf("%.*s\n", string_obj->length, string_obj->data);
     } else {
         printf("nil\n");
@@ -182,8 +186,8 @@ uint24_t prim_integer_add(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
     if (!receiver || !args || !args[0]) return g_nil;
     
     // Simple type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
-    ezom_object_t* arg_obj = (ezom_object_t*)args[0];
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(args[0]);
     
     // Direct type flag checking instead of calling ezom_is_integer
     if ((recv_obj->flags & 0xF0) != EZOM_TYPE_INTEGER || 
@@ -191,8 +195,8 @@ uint24_t prim_integer_add(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
         return g_nil;
     }
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     return ezom_create_integer(recv->value + arg->value);
 }
@@ -201,8 +205,8 @@ uint24_t prim_integer_add(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 uint24_t prim_integer_sub(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_nil;
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer subtraction\n");
@@ -216,8 +220,8 @@ uint24_t prim_integer_sub(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 uint24_t prim_integer_mul(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_nil;
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer multiplication\n");
@@ -231,8 +235,8 @@ uint24_t prim_integer_mul(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 uint24_t prim_integer_div(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_nil;
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         printf("Type error in integer division\n");
@@ -253,8 +257,8 @@ uint24_t prim_integer_mod(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
     if (!receiver || !args || !args[0]) return g_nil;
     
     // Direct type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
-    ezom_object_t* arg_obj = (ezom_object_t*)args[0];
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(args[0]);
     
     if ((recv_obj->flags & 0xF0) != EZOM_TYPE_INTEGER || 
         (arg_obj->flags & 0xF0) != EZOM_TYPE_INTEGER) {
@@ -262,8 +266,8 @@ uint24_t prim_integer_mod(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
         return g_nil;
     }
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (arg->value == 0) {
         printf("Division by zero in modulo\n");
@@ -277,8 +281,8 @@ uint24_t prim_integer_mod(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 uint24_t prim_integer_lt(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_false;
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         return g_false;
@@ -291,8 +295,8 @@ uint24_t prim_integer_lt(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
 uint24_t prim_integer_gt(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_false;
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         return g_false;
@@ -307,16 +311,16 @@ uint24_t prim_integer_lte(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
     if (!receiver || !args || !args[0]) return g_false;
     
     // Direct type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
-    ezom_object_t* arg_obj = (ezom_object_t*)args[0];
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(args[0]);
     
     if ((recv_obj->flags & 0xF0) != EZOM_TYPE_INTEGER || 
         (arg_obj->flags & 0xF0) != EZOM_TYPE_INTEGER) {
         return g_false;
     }
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     return (recv->value <= arg->value) ? g_true : g_false;
 }
@@ -325,8 +329,8 @@ uint24_t prim_integer_lte(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
 uint24_t prim_integer_gte(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_false;
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_integer(receiver) || !ezom_is_integer(args[0])) {
         return g_false;
@@ -341,16 +345,16 @@ uint24_t prim_integer_eq(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (!receiver || !args || !args[0]) return g_false;
     
     // Direct type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
-    ezom_object_t* arg_obj = (ezom_object_t*)args[0];
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(args[0]);
     
     if ((recv_obj->flags & 0xF0) != EZOM_TYPE_INTEGER || 
         (arg_obj->flags & 0xF0) != EZOM_TYPE_INTEGER) {
         return g_false;
     }
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     return (recv->value == arg->value) ? g_true : g_false;
 }
@@ -361,16 +365,16 @@ uint24_t prim_integer_neq(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
     if (!receiver || !args || !args[0]) return g_false;
     
     // Direct type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
-    ezom_object_t* arg_obj = (ezom_object_t*)args[0];
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(args[0]);
     
     if ((recv_obj->flags & 0xF0) != EZOM_TYPE_INTEGER || 
         (arg_obj->flags & 0xF0) != EZOM_TYPE_INTEGER) {
         return g_true; // Different types are not equal
     }
     
-    ezom_integer_t* recv = (ezom_integer_t*)receiver;
-    ezom_integer_t* arg = (ezom_integer_t*)args[0];
+    ezom_integer_t* recv = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* arg = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     return (recv->value != arg->value) ? g_true : g_false;
 }
@@ -385,7 +389,7 @@ uint24_t prim_integer_as_string(uint24_t receiver, uint24_t* args, uint8_t arg_c
     }
     
     // Direct type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
     
     printf("DEBUG: Checking object type, flags=0x%02X\n", recv_obj->flags);
     
@@ -394,9 +398,7 @@ uint24_t prim_integer_as_string(uint24_t receiver, uint24_t* args, uint8_t arg_c
         return g_nil;
     }
     
-    ezom_integer_t* int_obj = (ezom_integer_t*)receiver;
-    printf("DEBUG: Converting integer value=%d to string\n", int_obj->value);
-    
+    ezom_integer_t* int_obj = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
     char buffer[16];
     sprintf(buffer, "%d", int_obj->value);
     printf("DEBUG: sprintf completed, buffer='%s', about to call ezom_create_string\n", buffer);
@@ -414,7 +416,7 @@ uint24_t prim_integer_abs(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
         return g_nil;
     }
     
-    ezom_integer_t* int_obj = (ezom_integer_t*)receiver;
+    ezom_integer_t* int_obj = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
     int16_t value = int_obj->value;
     return ezom_create_integer(value < 0 ? -value : value);
 }
@@ -428,8 +430,8 @@ uint24_t prim_integer_to_do(uint24_t receiver, uint24_t* args, uint8_t arg_count
         return receiver;
     }
     
-    ezom_integer_t* start = (ezom_integer_t*)receiver;
-    ezom_integer_t* end = (ezom_integer_t*)args[0];
+    ezom_integer_t* start = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* end = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     uint24_t block = args[1];
     
     // Execute loop: start to: end do: block
@@ -453,7 +455,7 @@ uint24_t prim_integer_times_repeat(uint24_t receiver, uint24_t* args, uint8_t ar
         return receiver;
     }
     
-    ezom_integer_t* count = (ezom_integer_t*)receiver;
+    ezom_integer_t* count = (ezom_integer_t*)EZOM_OBJECT_PTR(receiver);
     uint24_t block = args[0];
     
     // Execute block count times
@@ -467,7 +469,7 @@ uint24_t prim_integer_times_repeat(uint24_t receiver, uint24_t* args, uint8_t ar
 // String>>length
 // String>>length
 uint24_t prim_string_length(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    ezom_string_t* str = (ezom_string_t*)receiver;
+    ezom_string_t* str = (ezom_string_t*)EZOM_OBJECT_PTR(receiver);
     
     if (!ezom_is_string(receiver)) {
         printf("Type error: length sent to non-string\n");
@@ -493,8 +495,8 @@ uint24_t prim_string_concat(uint24_t receiver, uint24_t* args, uint8_t arg_count
     printf("DEBUG: Checking object types\n");
     
     // Direct type checking without validation calls that might crash
-    ezom_object_t* recv_obj = (ezom_object_t*)receiver;
-    ezom_object_t* arg_obj = (ezom_object_t*)args[0];
+    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(args[0]);
     
     if ((recv_obj->flags & 0xF0) != EZOM_TYPE_STRING || 
         (arg_obj->flags & 0xF0) != EZOM_TYPE_STRING) {
@@ -504,13 +506,13 @@ uint24_t prim_string_concat(uint24_t receiver, uint24_t* args, uint8_t arg_count
     
     printf("DEBUG: Type check passed, accessing string data\n");
     
-    ezom_string_t* str1 = (ezom_string_t*)receiver;
-    ezom_string_t* str2 = (ezom_string_t*)args[0];
+    ezom_string_t* str1 = (ezom_string_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_string_t* str2 = (ezom_string_t*)EZOM_OBJECT_PTR(args[0]);
     
     printf("DEBUG: str1 length: %d, str2 length: %d\n", str1->length, str2->length);
     
     uint16_t new_length = str1->length + str2->length;
-    printf("DEBUG: About to allocate %d bytes\n", sizeof(ezom_string_t) + new_length + 1);
+    printf("DEBUG: About to allocate %lu bytes\n", (unsigned long)(sizeof(ezom_string_t) + new_length + 1));
     
     uint24_t result = ezom_allocate(sizeof(ezom_string_t) + new_length + 1);
     
@@ -525,7 +527,9 @@ uint24_t prim_string_concat(uint24_t receiver, uint24_t* args, uint8_t arg_count
     
     printf("DEBUG: Object initialized, setting up result string\n");
     
-    ezom_string_t* result_str = (ezom_string_t*)result;
+    printf("DEBUG: Object initialized, setting up result string\n");
+    
+    ezom_string_t* result_str = (ezom_string_t*)EZOM_OBJECT_PTR(result);
     result_str->length = new_length;
     
     printf("DEBUG: About to copy string data\n");
@@ -543,8 +547,8 @@ uint24_t prim_string_concat(uint24_t receiver, uint24_t* args, uint8_t arg_count
 uint24_t prim_string_equals(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
     if (arg_count != 1) return g_false;
     
-    ezom_string_t* str1 = (ezom_string_t*)receiver;
-    ezom_string_t* str2 = (ezom_string_t*)args[0];
+    ezom_string_t* str1 = (ezom_string_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_string_t* str2 = (ezom_string_t*)EZOM_OBJECT_PTR(args[0]);
     
     if (!ezom_is_string(receiver) || !ezom_is_string(args[0])) {
         return g_false;
@@ -568,7 +572,7 @@ uint24_t prim_array_new(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
         return 0;
     }
     
-    ezom_integer_t* size_obj = (ezom_integer_t*)args[0];
+    ezom_integer_t* size_obj = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     if (size_obj->value < 0) {
         printf("Negative array size\n");
         return 0;
@@ -584,8 +588,8 @@ uint24_t prim_array_at(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
         return 0;
     }
     
-    ezom_array_t* array = (ezom_array_t*)receiver;
-    ezom_integer_t* index_obj = (ezom_integer_t*)args[0];
+    ezom_array_t* array = (ezom_array_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* index_obj = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     
     // SOM uses 1-based indexing
     int16_t index = index_obj->value - 1;
@@ -605,8 +609,8 @@ uint24_t prim_array_at_put(uint24_t receiver, uint24_t* args, uint8_t arg_count)
         return 0;
     }
     
-    ezom_array_t* array = (ezom_array_t*)receiver;
-    ezom_integer_t* index_obj = (ezom_integer_t*)args[0];
+    ezom_array_t* array = (ezom_array_t*)EZOM_OBJECT_PTR(receiver);
+    ezom_integer_t* index_obj = (ezom_integer_t*)EZOM_OBJECT_PTR(args[0]);
     uint24_t value = args[1];
     
     // SOM uses 1-based indexing
@@ -628,7 +632,7 @@ uint24_t prim_array_length(uint24_t receiver, uint24_t* args, uint8_t arg_count)
         return 0;
     }
     
-    ezom_array_t* array = (ezom_array_t*)receiver;
+    ezom_array_t* array = (ezom_array_t*)EZOM_OBJECT_PTR(receiver);
     return ezom_create_integer(array->size);
 }
 
@@ -726,7 +730,7 @@ uint24_t prim_block_value(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
         return g_nil;
     }
     
-    ezom_block_t* block = (ezom_block_t*)receiver;
+    ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(receiver);
     
     if (block->param_count != 0) {
         printf("Block expects %d parameters, got 0\n", block->param_count);
@@ -752,7 +756,7 @@ uint24_t prim_block_value_with(uint24_t receiver, uint24_t* args, uint8_t arg_co
         return g_nil;
     }
     
-    ezom_block_t* block = (ezom_block_t*)receiver;
+    ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(receiver);
     
     if (block->param_count != 1) {
         printf("Block expects %d parameters, got 1\n", block->param_count);
@@ -772,25 +776,25 @@ uint24_t prim_block_value_with(uint24_t receiver, uint24_t* args, uint8_t arg_co
 
 bool ezom_is_integer(uint24_t obj) {
     if (!obj || !ezom_is_valid_object(obj)) return false;
-    ezom_object_t* object = (ezom_object_t*)obj;
+    ezom_object_t* object = (ezom_object_t*)EZOM_OBJECT_PTR(obj);
     return (object->flags & 0xF0) == EZOM_TYPE_INTEGER;
 }
 
 bool ezom_is_string(uint24_t obj) {
     if (!obj || !ezom_is_valid_object(obj)) return false;
-    ezom_object_t* object = (ezom_object_t*)obj;
+    ezom_object_t* object = (ezom_object_t*)EZOM_OBJECT_PTR(obj);
     return (object->flags & 0xF0) == EZOM_TYPE_STRING;
 }
 
 bool ezom_is_array(uint24_t obj) {
     if (!obj || !ezom_is_valid_object(obj)) return false;
-    ezom_object_t* object = (ezom_object_t*)obj;
+    ezom_object_t* object = (ezom_object_t*)EZOM_OBJECT_PTR(obj);
     return (object->flags & 0xF0) == EZOM_TYPE_ARRAY;
 }
 
 bool ezom_is_block(uint24_t obj) {
     if (!obj || !ezom_is_valid_object(obj)) return false;
-    ezom_object_t* object = (ezom_object_t*)obj;
+    ezom_object_t* object = (ezom_object_t*)EZOM_OBJECT_PTR(obj);
     return (object->flags & 0xF0) == EZOM_TYPE_BLOCK;
 }
 
