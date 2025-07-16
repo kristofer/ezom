@@ -279,15 +279,15 @@ uint24_t ezom_send_message(ezom_message_t* msg) {
                 ezom_log("DEBUG: Using emergency bypass for string concatenation (primitive crashes)\n");
                 
                 if (msg->arg_count == 1) {
-                    ezom_object_t* recv_obj = (ezom_object_t*)msg->receiver;
-                    ezom_object_t* arg_obj = (ezom_object_t*)msg->args[0];
+                    ezom_object_t* recv_obj = (ezom_object_t*)EZOM_OBJECT_PTR(msg->receiver);
+                    ezom_object_t* arg_obj = (ezom_object_t*)EZOM_OBJECT_PTR(msg->args[0]);
                     
                     // Direct type checking
                     if ((recv_obj->flags & 0xF0) == EZOM_TYPE_STRING && 
                         (arg_obj->flags & 0xF0) == EZOM_TYPE_STRING) {
                         
-                        ezom_string_t* str1 = (ezom_string_t*)msg->receiver;
-                        ezom_string_t* str2 = (ezom_string_t*)msg->args[0];
+                        ezom_string_t* str1 = (ezom_string_t*)EZOM_OBJECT_PTR(msg->receiver);
+                        ezom_string_t* str2 = (ezom_string_t*)EZOM_OBJECT_PTR(msg->args[0]);
                         
                         printf("DEBUG: Concatenating '%.*s' + '%.*s'\n", 
                                str1->length, str1->data, str2->length, str2->data);
@@ -305,7 +305,7 @@ uint24_t ezom_send_message(ezom_message_t* msg) {
                         
                         ezom_init_object(result, g_string_class, EZOM_TYPE_STRING);
                         
-                        ezom_string_t* result_str = (ezom_string_t*)result;
+                        ezom_string_t* result_str = (ezom_string_t*)EZOM_OBJECT_PTR(result);
                         result_str->length = new_length;
                         
                         memcpy(result_str->data, str1->data, str1->length);

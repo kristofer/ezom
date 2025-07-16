@@ -7,8 +7,8 @@ SRCDIR=src
 INCDIR=include
 OBJDIR=obj_native
 
-# Exclude main.c for native builds, use debug_main.c instead
-SOURCES=$(filter-out $(SRCDIR)/main.c, $(wildcard $(SRCDIR)/*.c))
+# Include all source files for native builds
+SOURCES=$(wildcard $(SRCDIR)/*.c)
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 .PHONY: all clean test_phase2_complete

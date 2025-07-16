@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
             printf("   Object with data created successfully\n");
             ezom_log("   Object with data created successfully\n");
             
-            ezom_integer_t* obj = (ezom_integer_t*)test_obj;
+            ezom_integer_t* obj = (ezom_integer_t*)EZOM_OBJECT_PTR(test_obj);
             printf("   Object value: %d\n", obj->value);
             ezom_log("   Object value: %d\n", obj->value);
         }
