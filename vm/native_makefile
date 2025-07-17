@@ -12,7 +12,7 @@ SOURCES=$(filter-out $(SRCDIR)/main_file_loader.c, $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 NATIVE_OBJS=$(OBJECTS)
 
-.PHONY: all clean test_phase2_complete test_phase3_step4 test_som_programs
+.PHONY: all clean test_phase2_complete test_phase3_step4 test_som_programs test_phase4_1_2
 
 all: $(OBJDIR) $(TARGET)
 
@@ -27,6 +27,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 test_phase2_complete: $(filter-out $(OBJDIR)/main.o $(OBJDIR)/debug_main.o, $(OBJECTS))
 	$(CC) $(CFLAGS) -I$(INCDIR) $(filter-out $(OBJDIR)/main.o $(OBJDIR)/debug_main.o, $(OBJECTS)) test_phase2_complete.c -o test_phase2_complete
+
+test_phase4_1_2: $(filter-out $(OBJDIR)/main.o $(OBJDIR)/debug_main.o, $(OBJECTS))
+	$(CC) $(CFLAGS) -I$(INCDIR) $(filter-out $(OBJDIR)/main.o $(OBJDIR)/debug_main.o, $(OBJECTS)) test_phase4_1_2.c -o test_phase4_1_2
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) test_phase2_complete

@@ -3,163 +3,163 @@ EZOM VM Debug Log Started
 
 DEBUG: ezom_send_message entry, receiver=0x042CF6
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D0E
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 0
 DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
-DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081D4, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 10
 DEBUG: Calling improved integer addition primitive
 DEBUG: About to call primitive function
-DEBUG: prim_num=10, function_ptr=0x1049E9380
-DEBUG: receiver=0x042CF6, args=0x16B42A25C, arg_count=1
+DEBUG: prim_num=10, function_ptr=0x102F15380
+DEBUG: receiver=0x042CF6, args=0x16CEFE25C, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042D28
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D40
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 0
 DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
-DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081D4, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 10
 DEBUG: Calling improved integer addition primitive
 DEBUG: About to call primitive function
-DEBUG: prim_num=10, function_ptr=0x1049E9380
-DEBUG: receiver=0x042D28, args=0x16B42A1EC, arg_count=1
+DEBUG: prim_num=10, function_ptr=0x102F15380
+DEBUG: receiver=0x042D28, args=0x16CEFE1EC, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042D4E
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D66
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 2
 DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
-DEBUG: Returning method=0x1500081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081EC, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 12
 DEBUG: About to call primitive function
-DEBUG: prim_num=12, function_ptr=0x1049E95C0
-DEBUG: receiver=0x042D4E, args=0x16B42A24C, arg_count=1
+DEBUG: prim_num=12, function_ptr=0x102F155C0
+DEBUG: receiver=0x042D4E, args=0x16CEFE24C, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042D80
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D98
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 1
 DEBUG: Method selector=0x04266E, code=0x00000B, flags=0x01
-DEBUG: Returning method=0x1500081E0, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081E0, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 11
 DEBUG: About to call primitive function
-DEBUG: prim_num=11, function_ptr=0x1049E94F0
-DEBUG: receiver=0x042D80, args=0x16B42A1EC, arg_count=1
+DEBUG: prim_num=11, function_ptr=0x102F154F0
+DEBUG: receiver=0x042D80, args=0x16CEFE1EC, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042DA6
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DBE
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 0
 DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
-DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081D4, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 10
 DEBUG: Calling improved integer addition primitive
 DEBUG: About to call primitive function
-DEBUG: prim_num=10, function_ptr=0x1049E9380
-DEBUG: receiver=0x042DA6, args=0x16B42A24C, arg_count=1
+DEBUG: prim_num=10, function_ptr=0x102F15380
+DEBUG: receiver=0x042DA6, args=0x16CEFE24C, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042DD8
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DF0
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 3
 DEBUG: Method selector=0x04268A, code=0x00000D, flags=0x01
-DEBUG: Returning method=0x1500081F8, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081F8, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 13
 DEBUG: About to call primitive function
-DEBUG: prim_num=13, function_ptr=0x1049E9690
-DEBUG: receiver=0x042DD8, args=0x16B42A1DC, arg_count=1
+DEBUG: prim_num=13, function_ptr=0x102F15690
+DEBUG: receiver=0x042DD8, args=0x16CEFE1DC, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042E0A
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E22
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 2
 DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
-DEBUG: Returning method=0x1500081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081EC, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 12
 DEBUG: About to call primitive function
-DEBUG: prim_num=12, function_ptr=0x1049E95C0
-DEBUG: receiver=0x042E0A, args=0x16B42A1DC, arg_count=1
+DEBUG: prim_num=12, function_ptr=0x102F155C0
+DEBUG: receiver=0x042E0A, args=0x16CEFE1DC, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042DFE
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E3C
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 0
 DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
-DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081D4, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 10
 DEBUG: Calling improved integer addition primitive
 DEBUG: About to call primitive function
-DEBUG: prim_num=10, function_ptr=0x1049E9380
-DEBUG: receiver=0x042DFE, args=0x16B42A23C, arg_count=1
+DEBUG: prim_num=10, function_ptr=0x102F15380
+DEBUG: receiver=0x042DFE, args=0x16CEFE23C, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042E56
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E6E
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 6
 DEBUG: Method selector=0x0426B6, code=0x00000F, flags=0x01
-DEBUG: Returning method=0x15000821C, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x13000821C, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 15
 DEBUG: About to call primitive function
-DEBUG: prim_num=15, function_ptr=0x1049E98FC
-DEBUG: receiver=0x042E56, args=0x16B42A26C, arg_count=1
+DEBUG: prim_num=15, function_ptr=0x102F158FC
+DEBUG: receiver=0x042E56, args=0x16CEFE26C, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042E7C
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E94
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 0
 DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
-DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081D4, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 10
 DEBUG: Calling improved integer addition primitive
 DEBUG: About to call primitive function
-DEBUG: prim_num=10, function_ptr=0x1049E9380
-DEBUG: receiver=0x042E7C, args=0x16B42A16C, arg_count=1
+DEBUG: prim_num=10, function_ptr=0x102F15380
+DEBUG: receiver=0x042E7C, args=0x16CEFE16C, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042EA2
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042EBA
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 2
 DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
-DEBUG: Returning method=0x1500081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081EC, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 12
 DEBUG: About to call primitive function
-DEBUG: prim_num=12, function_ptr=0x1049E95C0
-DEBUG: receiver=0x042EA2, args=0x16B42A1CC, arg_count=1
+DEBUG: prim_num=12, function_ptr=0x102F155C0
+DEBUG: receiver=0x042EA2, args=0x16CEFE1CC, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042ED4
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042EEC
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 0
 DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
-DEBUG: Returning method=0x1500081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081D4, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 10
 DEBUG: Calling improved integer addition primitive
 DEBUG: About to call primitive function
-DEBUG: prim_num=10, function_ptr=0x1049E9380
-DEBUG: receiver=0x042ED4, args=0x16B42A1CC, arg_count=1
+DEBUG: prim_num=10, function_ptr=0x102F15380
+DEBUG: receiver=0x042ED4, args=0x16CEFE1CC, arg_count=1
 DEBUG: Calling primitive function now...
 DEBUG: ezom_send_message entry, receiver=0x042EC8
 DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042F06
-DEBUG: Checking class 0x150008048 (depth 0)
+DEBUG: Checking class 0x130008048 (depth 0)
 DEBUG: Method dictionary has 16 methods
 DEBUG: Found method at index 1
 DEBUG: Method selector=0x04266E, code=0x00000B, flags=0x01
-DEBUG: Returning method=0x1500081E0, class_ptr=0x042048, is_primitive=1
+DEBUG: Returning method=0x1300081E0, class_ptr=0x042048, is_primitive=1
 DEBUG: Found primitive 11
 DEBUG: About to call primitive function
-DEBUG: prim_num=11, function_ptr=0x1049E94F0
-DEBUG: receiver=0x042EC8, args=0x16B42A22C, arg_count=1
+DEBUG: prim_num=11, function_ptr=0x102F154F0
+DEBUG: receiver=0x042EC8, args=0x16CEFE22C, arg_count=1
 DEBUG: Calling primitive function now...

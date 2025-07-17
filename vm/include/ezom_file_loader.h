@@ -70,3 +70,9 @@ void ezom_print_parse_error(ezom_parser_t* parser, const char* filename);
 char* ezom_read_file_contents(const char* filename, size_t* length);
 int ezom_file_exists(const char* filename);
 const char* ezom_get_file_extension(const char* filename);
+
+// Phase 4.1.2: Enhanced .som file loading functions
+ezom_file_result_t ezom_load_som_class_file(const char* filename, uint24_t* class_result);
+ezom_file_result_t ezom_parse_som_class_file(ezom_file_context_t* context);
+ezom_file_result_t ezom_evaluate_som_class(ezom_file_context_t* context);
+ezom_file_result_t ezom_load_som_directory(const char* directory);

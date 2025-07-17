@@ -240,6 +240,117 @@ ezom_file_result_t ezom_execute_som_code(const char* code, uint24_t* result) {
 }
 
 // ============================================================================
+// Phase 4.1.2: Enhanced .som File Loading and Parsing
+// ============================================================================
+
+// Load a .som class file and register it globally
+ezom_file_result_t ezom_load_som_class_file(const char* filename, uint24_t* class_result) {
+    printf("Loading .som class file: %s\n", filename);
+    
+    ezom_file_context_t context;
+    ezom_file_result_t status;
+    
+    // Load file
+    status = ezom_load_file(filename, &context);
+    if (status != EZOM_FILE_OK) {
+        printf("Failed to load file: %s\n", filename);
+        return status;
+    }
+    
+    // Parse file as class definition
+    status = ezom_parse_som_class_file(&context);
+    if (status != EZOM_FILE_OK) {
+        printf("Failed to parse .som file: %s\n", filename);
+        ezom_free_file_context(&context);
+        return status;
+    }
+    
+    // Evaluate and create class
+    status = ezom_evaluate_som_class(&context);
+    if (status != EZOM_FILE_OK) {
+        printf("Failed to evaluate .som class: %s\n", filename);
+        ezom_free_file_context(&context);
+        return status;
+    }
+    
+    // Return class result
+    if (class_result) {
+        *class_result = context.result_value;
+    }
+    
+    printf("Successfully loaded .som class from: %s\n", filename);
+    ezom_free_file_context(&context);
+    return EZOM_FILE_OK;
+}
+
+// Parse a .som file specifically as a class definition
+ezom_file_result_t ezom_parse_som_class_file(ezom_file_context_t* context) {
+    if (!context || !context->source_code) {
+        return EZOM_FILE_PARSE_ERROR;
+    }
+    
+    printf("Parsing .som class file...\n");
+    
+    // Initialize lexer
+    ezom_lexer_init(&context->lexer, context->source_code);
+    
+    // Initialize parser
+    ezom_parser_init(&context->parser, &context->lexer);
+    
+    // Parse as class definition - this is what .som files should contain
+    ezom_ast_node_t* class_ast = ezom_parse_class_definition(&context->parser);
+    if (!class_ast) {
+        printf("Failed to parse as class definition\n");
+        printf("  Line: %d, Column: %d\n", context->parser.lexer->line, context->parser.lexer->column);
+        return EZOM_FILE_PARSE_ERROR;
+    }
+    
+    context->program_ast = class_ast;
+    printf("Successfully parsed .som class definition\n");
+    return EZOM_FILE_OK;
+}
+
+// Evaluate a .som class and register it globally
+ezom_file_result_t ezom_evaluate_som_class(ezom_file_context_t* context) {
+    if (!context || !context->program_ast) {
+        return EZOM_FILE_EVAL_ERROR;
+    }
+    
+    printf("Evaluating .som class...\n");
+    
+    // Create evaluation context
+    uint24_t eval_context = ezom_create_context(0, 0);
+    
+    // Evaluate the class definition
+    ezom_eval_result_t result = ezom_evaluate_class_definition(context->program_ast, eval_context);
+    
+    if (result.is_error) {
+        printf("Evaluation error: %s\n", result.error_msg);
+        return EZOM_FILE_EVAL_ERROR;
+    }
+    
+    // Store result
+    context->result_value = result.value;
+    
+    printf("Successfully evaluated .som class: 0x%06X\n", result.value);
+    return EZOM_FILE_OK;
+}
+
+// Load multiple .som files from a directory
+ezom_file_result_t ezom_load_som_directory(const char* directory) {
+    printf("Loading .som files from directory: %s\n", directory);
+    
+    // This is a placeholder for directory loading
+    // In a full implementation, we would:
+    // 1. Scan directory for .som files
+    // 2. Load each file in dependency order
+    // 3. Handle class inheritance properly
+    
+    printf("Directory loading not yet implemented\n");
+    return EZOM_FILE_OK;
+}
+
+// ============================================================================
 // Command Line Interface
 // ============================================================================
 
