@@ -1,0 +1,64 @@
+" Test block functionality "
+BlockTest = Object (
+    
+    testSimpleBlock = (
+        | myBlock result |
+        'Testing simple block' println.
+        myBlock := [ 'Hello from block!' println ].
+        myBlock value.
+        ^self
+    )
+    
+    testBlockWithParameter = (
+        | squareBlock |
+        'Testing block with parameter' println.
+        squareBlock := [ :x | x * x ].
+        
+        1 to: 5 do: [ :i |
+            ('Square of ' + i asString + ' is ' + (squareBlock value: i) asString) println.
+        ].
+        ^self
+    )
+    
+    testBlockWithLocalVariable = (
+        | counterBlock |
+        'Testing block with local variable' println.
+        counterBlock := [ 
+            | localCounter |
+            localCounter := 0.
+            [ localCounter <= 3 ] whileTrue: [
+                ('Local counter: ' + localCounter asString) println.
+                localCounter := localCounter + 1.
+            ].
+        ].
+        counterBlock value.
+        ^self
+    )
+    
+    testConditionalBlocks = (
+        | number |
+        'Testing conditional blocks' println.
+        number := 15.
+        
+        (number > 10) ifTrue: [
+            'Number is greater than 10' println.
+        ] ifFalse: [
+            'Number is not greater than 10' println.
+        ].
+        
+        (number < 20) ifTrue: [
+            'Number is less than 20' println.
+        ].
+        
+        ^self
+    )
+    
+    run = (
+        'Testing Block Operations' println.
+        self testSimpleBlock.
+        self testBlockWithParameter.
+        self testBlockWithLocalVariable.
+        self testConditionalBlocks.
+        ^self
+    )
+)

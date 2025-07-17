@@ -11,7 +11,7 @@
 #ifdef __ez80__
     // ez80 Agon Light 2 platform
     #define EZOM_PLATFORM_EZ80
-    typedef unsigned long uint24_t;
+    // Use system-provided uint24_t instead of redefining
     #define EZOM_PTR_SIZE 3
     #define EZOM_HEAP_FIXED_ADDRESS 0x042000
     #define EZOM_DEFAULT_HEAP_SIZE 0x0E000  // 56KB

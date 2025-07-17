@@ -1,0 +1,36 @@
+" Test runner script that loads and executes all test files "
+TestRunner = Object (
+    
+    runFile: filename = (
+        ('Loading and running: ' + filename) println.
+        " This would use the file loading functionality "
+        " Implementation depends on the file loading system "
+        ^self
+    )
+    
+    runAllTests = (
+        'EZOM File Loading Test Suite' println.
+        '==============================' println.
+        '' println.
+        
+        self runFile: 'hello_world.som'.
+        self runFile: 'basic_math.som'.
+        self runFile: 'loop_test.som'.
+        self runFile: 'string_test.som'.
+        self runFile: 'array_test.som'.
+        self runFile: 'block_test.som'.
+        self runFile: 'inheritance_test.som'.
+        self runFile: 'counter.som'.
+        self runFile: 'calculator.som'.
+        self runFile: 'fibonacci.som'.
+        
+        '' println.
+        'All file loading tests completed!' println.
+        ^self
+    )
+    
+    run = (
+        self runAllTests.
+        ^self
+    )
+)

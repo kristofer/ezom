@@ -1,0 +1,49 @@
+" Test string operations "
+StringTest = Object (
+    
+    testStringConcatenation = (
+        | firstName lastName fullName |
+        firstName := 'John'.
+        lastName := 'Doe'.
+        fullName := firstName + ' ' + lastName.
+        ('Full name: ' + fullName) println.
+        ^self
+    )
+    
+    testStringLength = (
+        | text |
+        text := 'Hello, EZOM!'.
+        ('Text: ' + text) println.
+        ('Length: ' + text length asString) println.
+        ^self
+    )
+    
+    testStringComparison = (
+        | str1 str2 |
+        str1 := 'Hello'.
+        str2 := 'Hello'.
+        
+        (str1 = str2) ifTrue: [
+            'Strings are equal' println.
+        ] ifFalse: [
+            'Strings are not equal' println.
+        ].
+        
+        str2 := 'World'.
+        (str1 = str2) ifTrue: [
+            'Strings are equal' println.
+        ] ifFalse: [
+            'Strings are not equal' println.
+        ].
+        
+        ^self
+    )
+    
+    run = (
+        'Testing String Operations' println.
+        self testStringConcatenation.
+        self testStringLength.
+        self testStringComparison.
+        ^self
+    )
+)

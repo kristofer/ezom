@@ -272,45 +272,56 @@ ezom_eval_result_t ezom_evaluate_identifier(ezom_ast_node_t* node, uint24_t cont
     return ezom_make_error_result("Undefined variable");
 }
 
-// Assignment evaluation
+// Enhanced assignment evaluation with full variable type support
 ezom_eval_result_t ezom_evaluate_assignment(ezom_ast_node_t* node, uint24_t context) {
     if (!node || node->type != AST_ASSIGNMENT) {
         return ezom_make_error_result("Invalid assignment node");
     }
     
+    printf("Evaluating assignment\n");
+    
     // Evaluate the value first
-    ezom_eval_result_t value_result = ezom_evaluate_expression(node->data.assignment.value, context);
+    ezom_eval_result_t value_result = ezom_evaluate_ast(node->data.assignment.value, context);
     if (value_result.is_error) {
         return value_result;
     }
     
+    printf("Assignment value evaluated: 0x%06X\n", value_result.value);
+    
     // Handle different variable types
     if (node->data.assignment.variable->type == AST_VARIABLE_DEF) {
-        // New variable definition with type information
+        // Variable with type information
         ezom_ast_node_t* var_node = node->data.assignment.variable;
         
         if (var_node->data.variable.is_instance_var) {
-            // Set instance variable
-            uint24_t self_ptr = ezom_get_context_receiver(context);
-            if (self_ptr == 0) {
-                return ezom_make_error_result("Cannot assign instance variable outside of object context");
-            }
+            // Instance variable assignment
+            printf("Assigning to instance variable '%s' at index %d\n", 
+                   var_node->data.variable.name, var_node->data.variable.index);
             
-            ezom_set_instance_variable(self_ptr, var_node->data.variable.index, value_result.value);
+            return ezom_evaluate_instance_variable_assignment(var_node, value_result.value, context);
         } else if (var_node->data.variable.is_local) {
-            // Set local variable
-            ezom_set_local_variable(context, var_node->data.variable.index, value_result.value);
+            // Local variable assignment
+            printf("Assigning to local variable '%s' at index %d\n", 
+                   var_node->data.variable.name, var_node->data.variable.index);
+            
+            ezom_context_set_local(context, var_node->data.variable.index, value_result.value);
         } else {
-            // Set parameter (usually not allowed, but handle gracefully)
-            ezom_set_local_variable(context, var_node->data.variable.index, value_result.value);
+            // Parameter assignment (usually not allowed, but handle gracefully)
+            printf("Assigning to parameter '%s' at index %d\n", 
+                   var_node->data.variable.name, var_node->data.variable.index);
+            
+            ezom_context_set_local(context, var_node->data.variable.index, value_result.value);
         }
     } else if (node->data.assignment.variable->type == AST_IDENTIFIER) {
-        // Legacy identifier-based assignment
+        // Legacy identifier-based assignment - resolve variable type
         const char* var_name = node->data.assignment.variable->data.identifier.name;
         
-        // Try to set in current context first
-        if (!ezom_set_variable(var_name, value_result.value, context)) {
+        printf("Assigning to identifier '%s' (resolving type)\n", var_name);
+        
+        // Try to resolve variable type and assign appropriately
+        if (!ezom_assign_resolved_variable(var_name, value_result.value, context)) {
             // Fall back to globals
+            printf("Creating global variable '%s'\n", var_name);
             ezom_set_global(var_name, value_result.value);
         }
     } else {
@@ -593,84 +604,71 @@ ezom_eval_result_t ezom_evaluate_while_true(uint24_t condition_block, uint24_t b
 
 // Runtime instance variable access functions
 uint24_t ezom_get_instance_variable(uint24_t object_ptr, uint16_t index) {
-    if (object_ptr == 0) return 0;
-    
-    ezom_object_t* obj = EZOM_OBJECT_PTR(object_ptr);
-    if (!obj) return 0;
-    
-    // Get the object's class to determine instance variable layout
-    ezom_class_t* class_obj = EZOM_OBJECT_PTR(obj->class_ptr);
-    if (!class_obj || index >= class_obj->instance_var_count) {
-        return 0; // Invalid index
+    if (!object_ptr) {
+        return g_nil;
     }
     
     // Instance variables are stored after the object header
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(object_ptr);
     uint24_t* instance_vars = (uint24_t*)((char*)obj + sizeof(ezom_object_t));
+    
+    // TODO: Add bounds checking based on class definition
     return instance_vars[index];
 }
 
 void ezom_set_instance_variable(uint24_t object_ptr, uint16_t index, uint24_t value) {
-    if (object_ptr == 0) return;
-    
-    ezom_object_t* obj = EZOM_OBJECT_PTR(object_ptr);
-    if (!obj) return;
-    
-    // Get the object's class to determine instance variable layout
-    ezom_class_t* class_obj = EZOM_OBJECT_PTR(obj->class_ptr);
-    if (!class_obj || index >= class_obj->instance_var_count) {
-        return; // Invalid index
+    if (!object_ptr) {
+        return;
     }
     
     // Instance variables are stored after the object header
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(object_ptr);
     uint24_t* instance_vars = (uint24_t*)((char*)obj + sizeof(ezom_object_t));
+    
+    // TODO: Add bounds checking based on class definition
     instance_vars[index] = value;
 }
 
-uint16_t ezom_get_instance_variable_count(uint24_t object_ptr) {
-    if (object_ptr == 0) return 0;
+// Instance variable access and assignment
+ezom_eval_result_t ezom_evaluate_instance_variable_access(ezom_ast_node_t* var_node, uint24_t context) {
+    if (!var_node || var_node->type != AST_VARIABLE_DEF) {
+        return ezom_make_error_result("Invalid variable node");
+    }
     
-    ezom_object_t* obj = EZOM_OBJECT_PTR(object_ptr);
-    if (!obj) return 0;
+    if (!var_node->data.variable.is_instance_var) {
+        return ezom_make_error_result("Not an instance variable");
+    }
     
-    ezom_class_t* class_obj = EZOM_OBJECT_PTR(obj->class_ptr);
-    if (!class_obj) return 0;
+    // Get the receiver (self) from the context
+    uint24_t receiver = ezom_get_context_receiver(context);
+    if (!receiver) {
+        return ezom_make_error_result("No receiver in context");
+    }
     
-    return class_obj->instance_var_count;
+    // Access instance variable by index
+    uint24_t value = ezom_get_instance_variable(receiver, var_node->data.variable.index);
+    return ezom_make_result(value);
 }
 
-// Context accessor functions for variable access
-uint24_t ezom_get_context_receiver(uint24_t context_ptr) {
-    if (context_ptr == 0) return 0;
+ezom_eval_result_t ezom_evaluate_instance_variable_assignment(ezom_ast_node_t* var_node, 
+                                                            uint24_t value, uint24_t context) {
+    if (!var_node || var_node->type != AST_VARIABLE_DEF) {
+        return ezom_make_error_result("Invalid variable node");
+    }
     
-    ezom_context_t* context = EZOM_OBJECT_PTR(context_ptr);
-    if (!context) return 0;
+    if (!var_node->data.variable.is_instance_var) {
+        return ezom_make_error_result("Not an instance variable");
+    }
     
-    return context->receiver;
-}
-
-uint24_t ezom_get_local_variable(uint24_t context_ptr, uint16_t index) {
-    if (context_ptr == 0) return g_nil;
+    // Get the receiver (self) from the context
+    uint24_t receiver = ezom_get_context_receiver(context);
+    if (!receiver) {
+        return ezom_make_error_result("No receiver in context");
+    }
     
-    ezom_context_t* context = EZOM_OBJECT_PTR(context_ptr);
-    if (!context || index >= context->local_count) return g_nil;
-    
-    return context->locals[index];
-}
-
-uint24_t ezom_get_parameter(uint24_t context_ptr, uint16_t index) {
-    // Parameters are typically stored in the context's locals array
-    // The first n locals are parameters, where n is the method's parameter count
-    return ezom_get_local_variable(context_ptr, index);
-}
-
-void ezom_set_local_variable(uint24_t context_ptr, uint16_t index, uint24_t value) {
-    if (context_ptr == 0) return;
-    
-    ezom_context_t* context = EZOM_OBJECT_PTR(context_ptr);
-    if (!context || index >= context->local_count) return;
-    
-    context->locals[index] = value;
-    printf("Set local variable %d to 0x%06X\n", index, value);
+    // Set instance variable by index
+    ezom_set_instance_variable(receiver, var_node->data.variable.index, value);
+    return ezom_make_result(value);
 }
 
 // Utility functions
@@ -834,15 +832,42 @@ void ezom_install_methods_from_ast(uint24_t class_ptr, ezom_ast_node_t* method_l
 
 uint24_t ezom_compile_method_from_ast(ezom_ast_node_t* method_ast) {
     if (!method_ast || method_ast->type != AST_METHOD_DEF) {
+        printf("Error: Invalid method AST node\n");
         return 0;
     }
     
-    // For Phase 2, we'll create a simple method object that contains the AST
-    // In a full implementation, this would compile to bytecode
+    printf("Compiling method: %s\n", method_ast->data.method_def.selector);
     
-    // For now, return a pointer to the AST node itself
-    // This allows the method to be "executed" by evaluating the AST
-    return (uint24_t)method_ast;
+    // For Phase 4.1.1, we'll create a compiled method object that contains:
+    // 1. The AST for execution
+    // 2. Parameter and local variable metadata  
+    // 3. Method compilation info
+    
+    // Allocate space for a method execution context
+    uint24_t method_code_ptr = ezom_allocate(sizeof(ezom_method_code_t));
+    if (!method_code_ptr) {
+        printf("Error: Failed to allocate method code object\n");
+        return 0;
+    }
+    
+    ezom_init_object(method_code_ptr, g_object_class, EZOM_TYPE_OBJECT);
+    
+    ezom_method_code_t* method_code = (ezom_method_code_t*)EZOM_OBJECT_PTR(method_code_ptr);
+    
+    // Store method compilation data
+    method_code->ast_node = (uint24_t)method_ast; // Store AST for now
+    method_code->param_count = ezom_ast_count_parameters(method_ast->data.method_def.parameters);
+    method_code->local_count = ezom_ast_count_locals(method_ast->data.method_def.locals);
+    method_code->is_primitive = method_ast->data.method_def.is_primitive;
+    method_code->primitive_number = method_ast->data.method_def.primitive_number;
+    
+    printf("  Parameters: %d, Locals: %d\n", method_code->param_count, method_code->local_count);
+    
+    // In a full implementation, we would compile the method body to bytecode here
+    // For now, we'll evaluate the AST at runtime
+    
+    printf("Method compiled successfully at 0x%06X\n", method_code_ptr);
+    return method_code_ptr;
 }
 
 // Message send evaluation functions
@@ -957,4 +982,174 @@ ezom_eval_result_t ezom_evaluate_variable(ezom_ast_node_t* node, uint24_t contex
         uint24_t value = ezom_get_parameter(context, node->data.variable.index);
         return ezom_make_result(value);
     }
+}
+
+// Execute a compiled method with given receiver and arguments
+ezom_eval_result_t ezom_execute_compiled_method(uint24_t method_code_ptr, uint24_t receiver, 
+                                               uint24_t* args, uint8_t arg_count) {
+    if (!method_code_ptr) {
+        return ezom_make_error_result("Invalid method code pointer");
+    }
+    
+    ezom_method_code_t* method_code = (ezom_method_code_t*)EZOM_OBJECT_PTR(method_code_ptr);
+    
+    // Validate argument count
+    if (arg_count != method_code->param_count) {
+        return ezom_make_error_result("Wrong number of arguments");
+    }
+    
+    // Handle primitive methods
+    if (method_code->is_primitive) {
+        // Execute primitive method
+        return ezom_execute_primitive_method(method_code->primitive_number, receiver, args, arg_count);
+    }
+    
+    // Create execution context for the method
+    uint24_t method_context = ezom_create_enhanced_method_context(receiver, method_code, args, arg_count);
+    if (!method_context) {
+        return ezom_make_error_result("Failed to create method context");
+    }
+    
+    // Execute the method AST
+    ezom_ast_node_t* method_ast = (ezom_ast_node_t*)method_code->ast_node;
+    if (!method_ast || method_ast->type != AST_METHOD_DEF) {
+        return ezom_make_error_result("Invalid method AST");
+    }
+    
+    // Evaluate the method body
+    ezom_eval_result_t result = ezom_evaluate_method_body(method_ast->data.method_def.body, method_context);
+    
+    // Clean up context (in full implementation)
+    // ezom_destroy_context(method_context);
+    
+    return result;
+}
+
+// Create a method execution context with proper parameter and local variable binding
+uint24_t ezom_create_enhanced_method_context(uint24_t receiver, ezom_method_code_t* method_code, 
+                                           uint24_t* args, uint8_t arg_count) {
+    // Create context with space for parameters and locals
+    uint8_t total_vars = method_code->param_count + method_code->local_count;
+    uint24_t context = ezom_create_extended_context(g_current_context, receiver, 0, total_vars);
+    
+    if (!context) {
+        return 0;
+    }
+    
+    // Bind parameters to the context
+    for (uint8_t i = 0; i < method_code->param_count && i < arg_count; i++) {
+        ezom_context_set_local(context, i, args[i]);
+    }
+    
+    // Initialize local variables to nil
+    for (uint8_t i = method_code->param_count; i < total_vars; i++) {
+        ezom_context_set_local(context, i, g_nil);
+    }
+    
+    return context;
+}
+
+// Evaluate a method body with proper context
+ezom_eval_result_t ezom_evaluate_method_body(ezom_ast_node_t* body, uint24_t context) {
+    if (!body) {
+        return ezom_make_result(g_nil);
+    }
+    
+    // Set current context for evaluation
+    uint24_t old_context = g_current_context;
+    g_current_context = context;
+    
+    // Evaluate the body
+    ezom_eval_result_t result = ezom_evaluate_ast(body, context);
+    
+    // Restore previous context
+    g_current_context = old_context;
+    
+    return result;
+}
+
+// Execute a primitive method
+ezom_eval_result_t ezom_execute_primitive_method(uint8_t primitive_number, uint24_t receiver, 
+                                                uint24_t* args, uint8_t arg_count) {
+    // Check if primitive number is valid
+    if (primitive_number >= MAX_PRIMITIVES || !g_primitives[primitive_number]) {
+        return ezom_make_error_result("Invalid primitive number");
+    }
+    
+    // Call the primitive function
+    uint24_t result = g_primitives[primitive_number](receiver, args, arg_count);
+    return ezom_make_result(result);
+}
+
+// Resolve variable type and assign appropriately
+bool ezom_assign_resolved_variable(const char* var_name, uint24_t value, uint24_t context) {
+    // This function resolves a variable name to its type and assigns the value
+    // It handles instance variables, local variables, and parameters
+    
+    // First, check if it's a local variable or parameter in the current context
+    if (ezom_context_has_local(context, var_name)) {
+        uint16_t local_index = ezom_context_get_local_index(context, var_name);
+        ezom_context_set_local(context, local_index, value);
+        return true;
+    }
+    
+    // Check if it's an instance variable
+    uint24_t receiver = ezom_get_context_receiver(context);
+    if (receiver) {
+        uint16_t instance_var_index = ezom_get_instance_variable_index(receiver, var_name);
+        if (instance_var_index != UINT16_MAX) {
+            ezom_set_instance_variable(receiver, instance_var_index, value);
+            return true;
+        }
+    }
+    
+    // Variable not found in current context
+    return false;
+}
+
+// Check if a context has a local variable with given name
+bool ezom_context_has_local(uint24_t context_ptr, const char* name) {
+    // This is a simplified version - in a full implementation,
+    // we would store variable names in the context
+    // For now, we'll use the context lookup function
+    uint24_t result = ezom_context_lookup_variable(context_ptr, name);
+    return result != g_nil;
+}
+
+// Get the index of a local variable by name
+uint16_t ezom_context_get_local_index(uint24_t context_ptr, const char* name) {
+    // This is a placeholder - in a full implementation,
+    // we would maintain a mapping of variable names to indices
+    // For now, we'll return a default index
+    return 0; // TODO: Implement proper variable name mapping
+}
+
+// Get the index of an instance variable by name
+uint16_t ezom_get_instance_variable_index(uint24_t object_ptr, const char* name) {
+    if (!object_ptr) {
+        return UINT16_MAX;
+    }
+    
+    // Get the object's class
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(object_ptr);
+    uint24_t class_ptr = obj->class_ptr;
+    
+    if (!class_ptr) {
+        return UINT16_MAX;
+    }
+    
+    // Look up instance variable in class definition
+    return ezom_find_instance_variable_index_in_class(class_ptr, name);
+}
+
+// Find instance variable index in class definition
+uint16_t ezom_find_instance_variable_index_in_class(uint24_t class_ptr, const char* name) {
+    if (!class_ptr || !name) {
+        return UINT16_MAX;
+    }
+    
+    // This is a placeholder - in a full implementation,
+    // we would store instance variable names in the class
+    // For now, we'll return UINT16_MAX (not found)
+    return UINT16_MAX; // TODO: Implement proper instance variable lookup
 }

@@ -1106,3 +1106,8 @@ uint16_t ezom_gc_pressure(void) {
     
     return (g_heap.bytes_since_last_gc * 100) / g_heap.gc_threshold;
 }
+
+// Simple wrapper function for garbage collection
+void ezom_garbage_collect(void) {
+    ezom_trigger_garbage_collection();
+}

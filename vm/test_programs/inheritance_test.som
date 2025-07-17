@@ -1,0 +1,103 @@
+" Test class inheritance "
+Animal = Object (
+    | name |
+    
+    initialize: aName = (
+        name := aName.
+        ^self
+    )
+    
+    name = ( ^name )
+    
+    speak = (
+        ('Animal ' + name + ' makes a sound') println.
+        ^self
+    )
+    
+    ----
+    
+    " Class methods "
+    new: aName = (
+        ^super new initialize: aName
+    )
+)
+
+Dog = Animal (
+    | breed |
+    
+    initialize: aName breed: aBreed = (
+        super initialize: aName.
+        breed := aBreed.
+        ^self
+    )
+    
+    breed = ( ^breed )
+    
+    speak = (
+        ('Dog ' + name + ' (' + breed + ') barks: Woof!') println.
+        ^self
+    )
+    
+    wagTail = (
+        (name + ' wags tail happily') println.
+        ^self
+    )
+    
+    ----
+    
+    " Class methods "
+    new: aName breed: aBreed = (
+        ^super new initialize: aName breed: aBreed
+    )
+)
+
+Cat = Animal (
+    | color |
+    
+    initialize: aName color: aColor = (
+        super initialize: aName.
+        color := aColor.
+        ^self
+    )
+    
+    color = ( ^color )
+    
+    speak = (
+        ('Cat ' + name + ' (' + color + ') meows: Meow!') println.
+        ^self
+    )
+    
+    purr = (
+        (name + ' purrs contentedly') println.
+        ^self
+    )
+    
+    ----
+    
+    " Class methods "
+    new: aName color: aColor = (
+        ^super new initialize: aName color: aColor
+    )
+)
+
+InheritanceTest = Object (
+    run = (
+        | animal dog cat |
+        'Testing Class Inheritance' println.
+        
+        animal := Animal new: 'Generic'.
+        dog := Dog new: 'Buddy' breed: 'Golden Retriever'.
+        cat := Cat new: 'Whiskers' color: 'Orange'.
+        
+        'Animal sounds:' println.
+        animal speak.
+        dog speak.
+        cat speak.
+        
+        'Special behaviors:' println.
+        dog wagTail.
+        cat purr.
+        
+        ^self
+    )
+)

@@ -1,0 +1,61 @@
+" Test basic mathematical operations "
+BasicMath = Object (
+    
+    testArithmetic = (
+        | a b result |
+        a := 15.
+        b := 5.
+        
+        " Addition "
+        result := a + b.
+        ('15 + 5 = ' + result asString) println.
+        
+        " Subtraction "
+        result := a - b.
+        ('15 - 5 = ' + result asString) println.
+        
+        " Multiplication "
+        result := a * b.
+        ('15 * 5 = ' + result asString) println.
+        
+        " Division "
+        result := a / b.
+        ('15 / 5 = ' + result asString) println.
+        
+        ^self
+    )
+    
+    testComparisons = (
+        | a b |
+        a := 10.
+        b := 20.
+        
+        " Equality "
+        (a = b) ifTrue: [
+            'a equals b' println.
+        ] ifFalse: [
+            'a does not equal b' println.
+        ].
+        
+        " Less than "
+        (a < b) ifTrue: [
+            'a is less than b' println.
+        ].
+        
+        " Greater than "
+        (a > b) ifTrue: [
+            'a is greater than b' println.
+        ] ifFalse: [
+            'a is not greater than b' println.
+        ].
+        
+        ^self
+    )
+    
+    run = (
+        'Testing Basic Math Operations' println.
+        self testArithmetic.
+        self testComparisons.
+        ^self
+    )
+)

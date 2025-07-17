@@ -20,6 +20,7 @@ typedef struct ezom_parser {
 void ezom_parser_init(ezom_parser_t* parser, ezom_lexer_t* lexer);
 
 // Top-level parsing
+ezom_ast_node_t* ezom_parse_program(ezom_parser_t* parser);
 ezom_ast_node_t* ezom_parse_class_definition(ezom_parser_t* parser);
 ezom_ast_node_t* ezom_parse_method_definition(ezom_parser_t* parser, bool is_class_method);
 

@@ -1,0 +1,31 @@
+" Fibonacci calculator using recursion "
+Fibonacci = Object (
+    
+    calculate: n = (
+        (n <= 1) ifTrue: [
+            ^n
+        ] ifFalse: [
+            ^(self calculate: (n - 1)) + (self calculate: (n - 2))
+        ]
+    )
+    
+    run = (
+        | i result |
+        'Fibonacci sequence:' println.
+        i := 0.
+        [ i <= 10 ] whileTrue: [
+            result := self calculate: i.
+            ('Fib(' + i asString + ') = ' + result asString) println.
+            i := i + 1.
+        ].
+        ^self
+    )
+)
+
+FibonacciTest = Object (
+    run = (
+        'Testing Fibonacci Calculator' println.
+        Fibonacci new run.
+        ^self
+    )
+)

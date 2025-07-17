@@ -1,0 +1,61 @@
+" Test comprehensive VM functionality "
+AllTests = Object (
+    
+    runBasicMath = (
+        '=== Running Basic Math Tests ===' println.
+        BasicMath new run.
+        '' println.
+        ^self
+    )
+    
+    runLoopTests = (
+        '=== Running Loop Tests ===' println.
+        LoopTest new run.
+        '' println.
+        ^self
+    )
+    
+    runStringTests = (
+        '=== Running String Tests ===' println.
+        StringTest new run.
+        '' println.
+        ^self
+    )
+    
+    runArrayTests = (
+        '=== Running Array Tests ===' println.
+        ArrayTest new run.
+        '' println.
+        ^self
+    )
+    
+    runBlockTests = (
+        '=== Running Block Tests ===' println.
+        BlockTest new run.
+        '' println.
+        ^self
+    )
+    
+    runInheritanceTests = (
+        '=== Running Inheritance Tests ===' println.
+        InheritanceTest new run.
+        '' println.
+        ^self
+    )
+    
+    run = (
+        'EZOM VM Test Suite' println.
+        '==================' println.
+        '' println.
+        
+        self runBasicMath.
+        self runLoopTests.
+        self runStringTests.
+        self runArrayTests.
+        self runBlockTests.
+        self runInheritanceTests.
+        
+        'All tests completed!' println.
+        ^self
+    )
+)

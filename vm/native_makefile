@@ -7,8 +7,8 @@ SRCDIR=src
 INCDIR=include
 OBJDIR=obj_native
 
-# Include all source files for native builds
-SOURCES=$(wildcard $(SRCDIR)/*.c)
+# Include all source files for native builds except main_file_loader.c (has conflicting main)
+SOURCES=$(filter-out $(SRCDIR)/main_file_loader.c, $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 NATIVE_OBJS=$(OBJECTS)
 

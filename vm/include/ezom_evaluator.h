@@ -67,7 +67,39 @@ uint24_t ezom_create_ast_block(ezom_ast_node_t* block_ast, uint24_t context);
 ezom_eval_result_t ezom_evaluate_arguments(ezom_ast_node_t* arg_list, uint24_t* arg_values, 
                                          uint8_t max_args, uint24_t context);
 
+// Phase 4.1.1 Class Definition Parser functions
+uint24_t ezom_compile_method_from_ast(ezom_ast_node_t* method_ast);
+ezom_eval_result_t ezom_execute_compiled_method(uint24_t method_code_ptr, uint24_t receiver, 
+                                               uint24_t* args, uint8_t arg_count);
+uint24_t ezom_create_enhanced_method_context(uint24_t receiver, ezom_method_code_t* method_code, 
+                                           uint24_t* args, uint8_t arg_count);
+ezom_eval_result_t ezom_evaluate_method_body(ezom_ast_node_t* body, uint24_t context);
+ezom_eval_result_t ezom_execute_primitive_method(uint8_t primitive_number, uint24_t receiver, 
+                                                uint24_t* args, uint8_t arg_count);
+
+// Instance variable support
+ezom_eval_result_t ezom_evaluate_instance_variable_access(ezom_ast_node_t* var_node, uint24_t context);
+ezom_eval_result_t ezom_evaluate_instance_variable_assignment(ezom_ast_node_t* var_node, 
+                                                            uint24_t value, uint24_t context);
+uint24_t ezom_get_instance_variable(uint24_t object_ptr, uint16_t index);
+void ezom_set_instance_variable(uint24_t object_ptr, uint16_t index, uint24_t value);
+uint16_t ezom_get_instance_variable_index(uint24_t object_ptr, const char* name);
+uint16_t ezom_find_instance_variable_index_in_class(uint24_t class_ptr, const char* name);
+
+// Variable resolution
+bool ezom_assign_resolved_variable(const char* var_name, uint24_t value, uint24_t context);
+bool ezom_context_has_local(uint24_t context_ptr, const char* name);
+uint16_t ezom_context_get_local_index(uint24_t context_ptr, const char* name);
+
+// Class creation and method installation
+uint24_t ezom_create_class_with_inheritance(const char* name, uint24_t superclass, uint16_t instance_var_count);
+uint24_t ezom_create_instance(uint24_t class_ptr);
+void ezom_install_method_in_class(uint24_t class_ptr, const char* selector, uint24_t code, uint8_t arg_count, bool is_primitive);
+void ezom_install_methods_from_ast(uint24_t class_ptr, ezom_ast_node_t* method_list, bool is_class_method);
+
 // Utility functions
+void ezom_garbage_collect(void);
+uint24_t ezom_send_unary_message(uint24_t receiver, uint24_t selector);
 ezom_eval_result_t ezom_make_result(uint24_t value);
 ezom_eval_result_t ezom_make_return_result(uint24_t value);
 ezom_eval_result_t ezom_make_error_result(const char* message);

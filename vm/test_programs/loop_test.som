@@ -1,0 +1,50 @@
+" Test loops and control flow "
+LoopTest = Object (
+    
+    testTimesRepeat = (
+        'Testing timesRepeat:' println.
+        5 timesRepeat: [
+            'Hello from timesRepeat!' println.
+        ].
+        ^self
+    )
+    
+    testToDoLoop = (
+        'Testing to:do: loop' println.
+        1 to: 5 do: [ :i |
+            ('Loop iteration: ' + i asString) println.
+        ].
+        ^self
+    )
+    
+    testWhileTrue = (
+        | counter |
+        'Testing whileTrue:' println.
+        counter := 1.
+        [ counter <= 3 ] whileTrue: [
+            ('WhileTrue counter: ' + counter asString) println.
+            counter := counter + 1.
+        ].
+        ^self
+    )
+    
+    testWhileFalse = (
+        | counter |
+        'Testing whileFalse:' println.
+        counter := 5.
+        [ counter <= 0 ] whileFalse: [
+            ('WhileFalse counter: ' + counter asString) println.
+            counter := counter - 1.
+        ].
+        ^self
+    )
+    
+    run = (
+        'Testing Loop Constructs' println.
+        self testTimesRepeat.
+        self testToDoLoop.
+        self testWhileTrue.
+        self testWhileFalse.
+        ^self
+    )
+)

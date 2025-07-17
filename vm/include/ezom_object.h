@@ -121,6 +121,17 @@ typedef struct ezom_context {
     uint24_t      locals[];         // Local variables
 } ezom_context_t;
 
+// Method code object for compiled methods
+typedef struct ezom_method_code {
+    ezom_object_t header;
+    uint24_t      ast_node;      // Pointer to AST node (for now)
+    uint8_t       param_count;   // Number of parameters
+    uint8_t       local_count;   // Number of local variables
+    bool          is_primitive;  // Is this a primitive method?
+    uint8_t       primitive_number; // Primitive number if applicable
+    // Future: bytecode storage would go here
+} ezom_method_code_t;
+
 // Global class pointers (ENHANCED)
 extern uint24_t g_object_class;
 extern uint24_t g_class_class;

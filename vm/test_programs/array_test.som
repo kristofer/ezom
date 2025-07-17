@@ -1,0 +1,42 @@
+" Test array manipulation "
+ArrayTest = Object (
+    
+    testArrayCreation = (
+        | arr |
+        'Testing array creation' println.
+        arr := Array new: 3.
+        arr at: 1 put: 'First'.
+        arr at: 2 put: 'Second'.
+        arr at: 3 put: 'Third'.
+        
+        ('Array length: ' + arr length asString) println.
+        ^arr
+    )
+    
+    testArrayAccess: arr = (
+        | i |
+        'Array contents:' println.
+        i := 1.
+        [ i <= arr length ] whileTrue: [
+            ('  [' + i asString + '] = ' + (arr at: i)) println.
+            i := i + 1.
+        ].
+        ^self
+    )
+    
+    testArrayModification: arr = (
+        'Modifying array' println.
+        arr at: 2 put: 'Modified'.
+        self testArrayAccess: arr.
+        ^self
+    )
+    
+    run = (
+        | myArray |
+        'Testing Array Operations' println.
+        myArray := self testArrayCreation.
+        self testArrayAccess: myArray.
+        self testArrayModification: myArray.
+        ^self
+    )
+)

@@ -1,0 +1,42 @@
+" Test error handling and edge cases "
+ErrorTest = Object (
+    
+    testDivisionByZero = (
+        'Testing division by zero' println.
+        " This should trigger an error "
+        10 / 0.
+        'This should not print' println.
+        ^self
+    )
+    
+    testArrayOutOfBounds = (
+        | arr |
+        'Testing array out of bounds' println.
+        arr := Array new: 3.
+        arr at: 1 put: 'Valid'.
+        
+        " This should trigger an error "
+        arr at: 10.
+        'This should not print' println.
+        ^self
+    )
+    
+    testNilMethodCall = (
+        | nilObject |
+        'Testing nil method call' println.
+        nilObject := nil.
+        
+        " This should trigger an error "
+        nilObject someMethod.
+        'This should not print' println.
+        ^self
+    )
+    
+    run = (
+        'Testing Error Handling' println.
+        self testDivisionByZero.
+        self testArrayOutOfBounds.
+        self testNilMethodCall.
+        ^self
+    )
+)

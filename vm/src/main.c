@@ -16,6 +16,28 @@
 #include <stdio.h>
 #include <string.h>
 
+// Global class pointers (basic classes)
+uint24_t g_object_class = 0;
+uint24_t g_class_class = 0;
+uint24_t g_integer_class = 0;
+uint24_t g_string_class = 0;
+uint24_t g_symbol_class = 0;
+
+// Enhanced global class pointers
+uint24_t g_array_class = 0;
+uint24_t g_block_class = 0;
+uint24_t g_boolean_class = 0;
+uint24_t g_true_class = 0;
+uint24_t g_false_class = 0;
+uint24_t g_nil_class = 0;
+uint24_t g_context_class = 0;
+
+// Global singleton objects
+uint24_t g_nil = 0;
+uint24_t g_true = 0;
+uint24_t g_false = 0;
+// Note: g_current_context is defined in context.c
+
 // Function to wait for user input
 void wait_for_continue() {
     printf("\n--- Press any key to continue ---");

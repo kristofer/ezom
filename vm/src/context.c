@@ -13,14 +13,7 @@
 // Forward declaration from parser.c
 extern int ezom_find_parameter_index(const char* name, ezom_ast_node_t* parameters);
 
-// Global object references (declared in bootstrap.c)
-extern uint24_t g_block_class;
-extern uint24_t g_context_class;
-extern uint24_t g_boolean_class;
-extern uint24_t g_true_class;
-extern uint24_t g_false_class;
-extern uint24_t g_true;
-extern uint24_t g_false;
+// Global current context (defined in this file)
 uint24_t g_current_context = 0;
 
 // Context stack for execution
@@ -368,4 +361,41 @@ bool ezom_is_context_object(uint24_t object_ptr) {
     if (!object_ptr) return false;
     ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(object_ptr);
     return obj->class_ptr == g_context_class;
+}
+
+// Missing functions needed by evaluator
+uint24_t ezom_get_context_receiver(uint24_t context_ptr) {
+    if (!context_ptr) {
+        return 0;
+    }
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    return context->receiver;
+}
+
+uint24_t ezom_get_local_variable(uint24_t context_ptr, uint16_t index) {
+    if (!context_ptr) {
+        return g_nil;
+    }
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    if (index >= context->local_count) {
+        return g_nil;
+    }
+    
+    return context->locals[index];
+}
+
+uint24_t ezom_get_parameter(uint24_t context_ptr, uint16_t index) {
+    if (!context_ptr) {
+        return g_nil;
+    }
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    if (index >= context->local_count) {
+        return g_nil;
+    }
+    
+    // Parameters are stored at the beginning of the locals array
+    return context->locals[index];
 }

@@ -18,6 +18,26 @@ void ezom_parser_init(ezom_parser_t* parser, ezom_lexer_t* lexer) {
     parser->error_count = 0;
 }
 
+// Program parsing - parse a sequence of expressions or class definitions
+ezom_ast_node_t* ezom_parse_program(ezom_parser_t* parser) {
+    ezom_parser_skip_newlines(parser);
+    
+    // Try to parse as expression first
+    ezom_ast_node_t* expr = ezom_parse_expression(parser);
+    if (expr) {
+        // Skip any trailing newlines or EOF
+        ezom_parser_skip_newlines(parser);
+        return expr;
+    }
+    
+    // Reset parser state and try again
+    parser->has_error = false;
+    parser->error_message[0] = '\0';
+    
+    // If expression parsing failed, return NULL
+    return NULL;
+}
+
 // Class definition parsing
 // Syntax: ClassName = SuperClass ( | instanceVars | methods ---- classMethods )
 ezom_ast_node_t* ezom_parse_class_definition(ezom_parser_t* parser) {

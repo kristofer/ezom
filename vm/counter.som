@@ -1,0 +1,30 @@
+Counter = Object (
+    | value |
+    
+    initialize = (
+        value := 0.
+        ^self
+    )
+    
+    increment = (
+        value := value + 1.
+        ^value
+    )
+    
+    getValue = (
+        ^value
+    )
+    
+    setValue: newValue = (
+        value := newValue.
+        ^self
+    )
+    
+    ----
+    
+    new = (
+        ^super new initialize
+    )
+)
+
+Counter new increment println
