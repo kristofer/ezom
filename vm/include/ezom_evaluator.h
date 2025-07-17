@@ -76,3 +76,17 @@ bool ezom_is_truthy(uint24_t object);
 // Debug support
 void ezom_evaluator_debug_context(uint24_t context);
 void ezom_evaluator_trace_message(const char* selector, uint24_t receiver, uint24_t* args, uint8_t arg_count);
+
+// Runtime instance variable access functions
+uint24_t ezom_get_instance_variable(uint24_t object_ptr, uint16_t index);
+void ezom_set_instance_variable(uint24_t object_ptr, uint16_t index, uint24_t value);
+uint16_t ezom_get_instance_variable_count(uint24_t object_ptr);
+
+// Variable evaluation
+ezom_eval_result_t ezom_evaluate_variable(ezom_ast_node_t* node, uint24_t context);
+
+// Context accessor functions
+uint24_t ezom_get_context_receiver(uint24_t context_ptr);
+uint24_t ezom_get_local_variable(uint24_t context_ptr, uint16_t index);
+uint24_t ezom_get_parameter(uint24_t context_ptr, uint16_t index);
+void ezom_set_local_variable(uint24_t context_ptr, uint16_t index, uint24_t value);

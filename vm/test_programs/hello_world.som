@@ -1,0 +1,7 @@
+" Simple Hello World program "
+HelloWorld = Object (
+    run = (
+        'Hello, EZOM World!' println.
+        ^self
+    )
+)

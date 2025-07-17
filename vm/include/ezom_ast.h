@@ -149,6 +149,7 @@ ezom_ast_node_t* ezom_ast_create_literal_symbol(const char* value);
 ezom_ast_node_t* ezom_ast_create_identifier(const char* name);
 ezom_ast_node_t* ezom_ast_create_variable_list(void);
 ezom_ast_node_t* ezom_ast_create_statement_list(void);
+ezom_ast_node_t* ezom_ast_create_variable(const char* name);
 
 // AST manipulation functions
 void ezom_ast_add_statement(ezom_ast_node_t* list, ezom_ast_node_t* statement);

@@ -1,0 +1,49 @@
+" Array operations and basic calculations "
+Calculator = Object (
+    | numbers |
+    
+    initialize = (
+        numbers := Array new: 5.
+        numbers at: 1 put: 10.
+        numbers at: 2 put: 20.
+        numbers at: 3 put: 30.
+        numbers at: 4 put: 40.
+        numbers at: 5 put: 50.
+        ^self
+    )
+    
+    sum = (
+        | total i |
+        total := 0.
+        i := 1.
+        [ i <= numbers length ] whileTrue: [
+            total := total + (numbers at: i).
+            i := i + 1.
+        ].
+        ^total
+    )
+    
+    printNumbers = (
+        | i |
+        'Numbers: ' println.
+        i := 1.
+        [ i <= numbers length ] whileTrue: [
+            ('  ' + (numbers at: i) asString) println.
+            i := i + 1.
+        ].
+        ^self
+    )
+    
+    run = (
+        self printNumbers.
+        ('Sum: ' + self sum asString) println.
+        ^self
+    )
+    
+    ----
+    
+    " Class methods "
+    new = (
+        ^super new initialize
+    )
+)

@@ -1,0 +1,28 @@
+" Simple Counter class with increment functionality "
+Counter = Object (
+    | value |
+    
+    initialize = (
+        value := 0.
+        ^self
+    )
+    
+    increment = (
+        value := value + 1.
+        ^value
+    )
+    
+    value = ( ^value )
+    
+    println = (
+        ('Counter value: ' + value asString) println.
+        ^self
+    )
+    
+    ----
+    
+    " Class methods "
+    new = (
+        ^super new initialize
+    )
+)

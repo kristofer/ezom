@@ -52,6 +52,8 @@ ezom_ast_node_t* ezom_parse_parameter_list(ezom_parser_t* parser);
 char* ezom_parse_unary_selector(ezom_parser_t* parser);
 char* ezom_parse_binary_selector(ezom_parser_t* parser);
 char* ezom_parse_keyword_selector(ezom_parser_t* parser);
+char* ezom_parse_keyword_method_signature(ezom_parser_t* parser, ezom_ast_node_t** parameters);
+char* ezom_parse_binary_method_signature(ezom_parser_t* parser, ezom_ast_node_t** parameters);
 
 // Utility functions
 bool ezom_parser_match(ezom_parser_t* parser, ezom_token_type_t type);
@@ -66,3 +68,25 @@ bool ezom_is_binary_operator(ezom_token_type_t type);
 bool ezom_is_keyword_start(ezom_parser_t* parser);
 int ezom_get_precedence(ezom_token_type_t type);
 char* ezom_copy_current_token_text(ezom_parser_t* parser);
+
+// Instance variable resolution context
+typedef struct {
+    ezom_ast_node_t* class_def;
+    ezom_ast_node_t* method_def;
+    ezom_ast_node_t* current_locals;
+    ezom_ast_node_t* current_parameters;
+} ezom_variable_context_t;
+
+// Resolve variable type based on context
+typedef enum {
+    VAR_INSTANCE,
+    VAR_LOCAL,
+    VAR_PARAMETER,
+    VAR_UNKNOWN
+} ezom_variable_type_t;
+
+ezom_variable_type_t ezom_resolve_variable_type(const char* name, ezom_variable_context_t* context);
+int ezom_find_instance_variable_index(const char* name, ezom_ast_node_t* class_def);
+int ezom_find_local_variable_index(const char* name, ezom_ast_node_t* locals);
+int ezom_find_parameter_index(const char* name, ezom_ast_node_t* parameters);
+ezom_ast_node_t* ezom_create_variable_with_context(const char* name, ezom_variable_context_t* context);

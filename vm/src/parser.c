@@ -67,6 +67,15 @@ ezom_ast_node_t* ezom_parse_class_definition(ezom_parser_t* parser) {
         ezom_ast_node_t* method = ezom_parse_method_definition(parser, false);
         if (method) {
             ezom_ast_add_statement(instance_methods, method);
+        } else {
+            // If method parsing failed, synchronize to avoid infinite loop
+            ezom_parser_synchronize(parser);
+            // If we're still stuck, advance one token
+            if (!ezom_parser_check(parser, TOKEN_SEPARATOR) && 
+                !ezom_parser_check(parser, TOKEN_RPAREN) && 
+                !ezom_parser_check(parser, TOKEN_EOF)) {
+                ezom_parser_advance(parser);
+            }
         }
         ezom_parser_skip_newlines(parser);
     }
@@ -83,6 +92,14 @@ ezom_ast_node_t* ezom_parse_class_definition(ezom_parser_t* parser) {
             ezom_ast_node_t* method = ezom_parse_method_definition(parser, true);
             if (method) {
                 ezom_ast_add_statement(class_methods, method);
+            } else {
+                // If method parsing failed, synchronize to avoid infinite loop
+                ezom_parser_synchronize(parser);
+                // If we're still stuck, advance one token
+                if (!ezom_parser_check(parser, TOKEN_RPAREN) && 
+                    !ezom_parser_check(parser, TOKEN_EOF)) {
+                    ezom_parser_advance(parser);
+                }
             }
             ezom_parser_skip_newlines(parser);
         }
@@ -100,24 +117,26 @@ ezom_ast_node_t* ezom_parse_class_definition(ezom_parser_t* parser) {
 ezom_ast_node_t* ezom_parse_method_definition(ezom_parser_t* parser, bool is_class_method) {
     ezom_parser_skip_newlines(parser);
     
-    // Parse method selector
+    // Parse method selector and parameters
     char* selector = NULL;
+    ezom_ast_node_t* parameters = NULL;
     
     if (ezom_parser_check(parser, TOKEN_IDENTIFIER)) {
         // Unary or keyword selector
         if (ezom_is_keyword_start(parser)) {
-            selector = ezom_parse_keyword_selector(parser);
+            selector = ezom_parse_keyword_method_signature(parser, &parameters);
         } else {
             selector = ezom_parse_unary_selector(parser);
         }
     } else if (ezom_is_binary_operator(parser->lexer->current_token.type)) {
-        selector = ezom_parse_binary_selector(parser);
+        selector = ezom_parse_binary_method_signature(parser, &parameters);
     } else {
         ezom_parser_error(parser, "Expected method selector");
         return NULL;
     }
     
     ezom_ast_node_t* method = ezom_ast_create_method_def(selector, is_class_method);
+    method->data.method_def.parameters = parameters;
     free(selector);
     
     // Parse = (
@@ -322,6 +341,10 @@ ezom_ast_node_t* ezom_parse_statement(ezom_parser_t* parser) {
             ezom_ast_free(expr);
             return NULL;
         }
+        
+        // Consume optional dot after assignment
+        ezom_parser_match(parser, TOKEN_DOT);
+        
         return ezom_ast_create_assignment(expr, value);
     }
     
@@ -499,6 +522,96 @@ char* ezom_parse_keyword_selector(ezom_parser_t* parser) {
     return selector;
 }
 
+// Instance variable resolution functions
+ezom_variable_type_t ezom_resolve_variable_type(const char* name, ezom_variable_context_t* context) {
+    if (!name || !context) return VAR_UNKNOWN;
+    
+    // Check parameters first
+    if (context->current_parameters && 
+        ezom_find_parameter_index(name, context->current_parameters) >= 0) {
+        return VAR_PARAMETER;
+    }
+    
+    // Check local variables
+    if (context->current_locals && 
+        ezom_find_local_variable_index(name, context->current_locals) >= 0) {
+        return VAR_LOCAL;
+    }
+    
+    // Check instance variables
+    if (context->class_def && 
+        ezom_find_instance_variable_index(name, context->class_def) >= 0) {
+        return VAR_INSTANCE;
+    }
+    
+    return VAR_UNKNOWN;
+}
+
+int ezom_find_instance_variable_index(const char* name, ezom_ast_node_t* class_def) {
+    if (!name || !class_def || !class_def->data.class_def.instance_vars) return -1;
+    
+    ezom_ast_node_t* vars = class_def->data.class_def.instance_vars;
+    for (int i = 0; i < vars->data.variable_list.count; i++) {
+        if (strcmp(vars->data.variable_list.names[i], name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int ezom_find_local_variable_index(const char* name, ezom_ast_node_t* locals) {
+    if (!name || !locals) return -1;
+    
+    for (int i = 0; i < locals->data.variable_list.count; i++) {
+        if (strcmp(locals->data.variable_list.names[i], name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int ezom_find_parameter_index(const char* name, ezom_ast_node_t* parameters) {
+    if (!name || !parameters) return -1;
+    
+    for (int i = 0; i < parameters->data.variable_list.count; i++) {
+        if (strcmp(parameters->data.variable_list.names[i], name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// Context-aware variable creation
+ezom_ast_node_t* ezom_create_variable_with_context(const char* name, ezom_variable_context_t* context) {
+    ezom_variable_type_t var_type = ezom_resolve_variable_type(name, context);
+    
+    ezom_ast_node_t* var_node = ezom_ast_create_variable(name);
+    
+    switch (var_type) {
+        case VAR_INSTANCE:
+            var_node->data.variable.is_instance_var = true;
+            var_node->data.variable.index = ezom_find_instance_variable_index(name, context->class_def);
+            break;
+        case VAR_LOCAL:
+            var_node->data.variable.is_local = true;
+            var_node->data.variable.index = ezom_find_local_variable_index(name, context->current_locals);
+            break;
+        case VAR_PARAMETER:
+            var_node->data.variable.is_local = false;
+            var_node->data.variable.is_instance_var = false;
+            var_node->data.variable.index = ezom_find_parameter_index(name, context->current_parameters);
+            break;
+        case VAR_UNKNOWN:
+            // Default to instance variable if we can't determine
+            var_node->data.variable.is_instance_var = false;
+            var_node->data.variable.is_local = false;
+            var_node->data.variable.index = 0;
+            break;
+    }
+    
+    return var_node;
+}
+
 // Utility functions
 bool ezom_parser_match(ezom_parser_t* parser, ezom_token_type_t type) {
     if (ezom_parser_check(parser, type)) {
@@ -533,6 +646,21 @@ void ezom_parser_error(ezom_parser_t* parser, const char* message) {
              parser->lexer->current_token.column, 
              message);
     printf("Parse error: %s\n", parser->error_message);
+}
+
+void ezom_parser_synchronize(ezom_parser_t* parser) {
+    // Skip tokens until we find a safe point to continue parsing
+    while (!ezom_parser_check(parser, TOKEN_EOF)) {
+        // Look for tokens that might indicate the start of a new construct
+        if (ezom_parser_check(parser, TOKEN_IDENTIFIER) ||
+            ezom_parser_check(parser, TOKEN_SEPARATOR) ||
+            ezom_parser_check(parser, TOKEN_RPAREN) ||
+            ezom_parser_check(parser, TOKEN_RBRACKET) ||
+            ezom_parser_check(parser, TOKEN_NEWLINE)) {
+            return;
+        }
+        ezom_parser_advance(parser);
+    }
 }
 
 static void ezom_parser_skip_newlines(ezom_parser_t* parser) {
@@ -581,4 +709,55 @@ char* ezom_copy_current_token_text(ezom_parser_t* parser) {
         result[1] = '\0';
         return result;
     }
+}
+
+char* ezom_parse_keyword_method_signature(ezom_parser_t* parser, ezom_ast_node_t** parameters) {
+    char* selector = malloc(256);
+    selector[0] = '\0';
+    
+    *parameters = ezom_ast_create_variable_list();
+    
+    while (ezom_parser_check(parser, TOKEN_IDENTIFIER) && ezom_is_keyword_start(parser)) {
+        char* keyword = ezom_copy_current_token_text(parser);
+        strcat(selector, keyword);
+        free(keyword);
+        ezom_parser_advance(parser);
+        
+        if (ezom_parser_match(parser, TOKEN_COLON)) {
+            strcat(selector, ":");
+            
+            // Parse parameter name
+            if (ezom_parser_check(parser, TOKEN_IDENTIFIER)) {
+                char* param_name = ezom_copy_current_token_text(parser);
+                ezom_ast_add_variable(*parameters, param_name);
+                free(param_name);
+                ezom_parser_advance(parser);
+            } else {
+                ezom_parser_error(parser, "Expected parameter name after ':'");
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    
+    return selector;
+}
+
+char* ezom_parse_binary_method_signature(ezom_parser_t* parser, ezom_ast_node_t** parameters) {
+    char* selector = ezom_parse_binary_selector(parser);
+    
+    *parameters = ezom_ast_create_variable_list();
+    
+    // Parse parameter name for binary method
+    if (ezom_parser_check(parser, TOKEN_IDENTIFIER)) {
+        char* param_name = ezom_copy_current_token_text(parser);
+        ezom_ast_add_variable(*parameters, param_name);
+        free(param_name);
+        ezom_parser_advance(parser);
+    } else {
+        ezom_parser_error(parser, "Expected parameter name after binary operator");
+    }
+    
+    return selector;
 }

@@ -183,6 +183,27 @@ ezom_ast_node_t* ezom_ast_create_statement_list(void) {
     return node;
 }
 
+ezom_ast_node_t* ezom_ast_create_variable(const char* name) {
+    ezom_ast_node_t* node = ezom_ast_create(AST_VARIABLE_DEF);
+    if (!node) return NULL;
+    if (!name) {
+        free(node);
+        return NULL;
+    }
+    
+    node->data.variable.name = strdup(name);
+    node->data.variable.is_instance_var = false;
+    node->data.variable.is_local = false;
+    node->data.variable.index = 0;
+    
+    if (!node->data.variable.name) {
+        free(node);
+        return NULL;
+    }
+    
+    return node;
+}
+
 // AST manipulation functions
 
 void ezom_ast_add_statement(ezom_ast_node_t* list, ezom_ast_node_t* statement) {

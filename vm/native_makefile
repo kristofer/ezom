@@ -10,8 +10,9 @@ OBJDIR=obj_native
 # Include all source files for native builds
 SOURCES=$(wildcard $(SRCDIR)/*.c)
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+NATIVE_OBJS=$(OBJECTS)
 
-.PHONY: all clean test_phase2_complete test_phase3_step4
+.PHONY: all clean test_phase2_complete test_phase3_step4 test_som_programs
 
 all: $(OBJDIR) $(TARGET)
 
@@ -35,3 +36,21 @@ test: $(TARGET)
 
 test_phase3_step4: $(TARGET)
 	./$(TARGET)
+
+test_som_programs: $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
+	$(CC) $(CFLAGS) -I$(INCDIR) $(filter-out $(OBJDIR)/main.o, $(OBJECTS)) test_som_programs.c -o test_som_programs
+
+som_interpreter_demo: $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
+	$(CC) $(CFLAGS) -I$(INCDIR) $(filter-out $(OBJDIR)/main.o, $(OBJECTS)) som_interpreter_demo.c -o som_interpreter_demo
+
+test_class_parser: $(OBJECTS) test_class_parser.c
+	$(CC) $(CFLAGS) -Iinclude $(filter-out $(OBJDIR)/main.o, $(OBJECTS)) test_class_parser.c -o test_class_parser
+
+debug_assignment: $(OBJECTS) debug_assignment.c
+	$(CC) $(CFLAGS) -Iinclude $(filter-out $(OBJDIR)/main.o, $(OBJECTS)) debug_assignment.c -o debug_assignment
+
+debug_class_assignment: $(OBJECTS) debug_class_assignment.c
+	$(CC) $(CFLAGS) -Iinclude $(filter-out $(OBJDIR)/main.o, $(OBJECTS)) debug_class_assignment.c -o debug_class_assignment
+
+test_method_compilation: $(OBJECTS) test_method_compilation.c
+	$(CC) $(CFLAGS) -Iinclude $(filter-out $(OBJDIR)/main.o, $(OBJECTS)) test_method_compilation.c -o test_method_compilation
