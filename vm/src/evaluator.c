@@ -72,6 +72,15 @@ ezom_eval_result_t ezom_evaluate_ast(ezom_ast_node_t* node, uint24_t context) {
         case AST_MESSAGE_SEND:
             return ezom_evaluate_message_send(node, context);
             
+        case AST_UNARY_MESSAGE:
+            return ezom_evaluate_unary_message(node, context);
+            
+        case AST_BINARY_MESSAGE:
+            return ezom_evaluate_binary_message(node, context);
+            
+        case AST_KEYWORD_MESSAGE:
+            return ezom_evaluate_keyword_message(node, context);
+            
         case AST_LITERAL:
             return ezom_evaluate_literal(node, context);
             
@@ -221,37 +230,45 @@ ezom_eval_result_t ezom_evaluate_identifier(ezom_ast_node_t* node, uint24_t cont
     }
     
     const char* name = node->data.identifier.name;
+    printf("   Debug: Looking up identifier '%s'\n", name);
     
     // Look up in current context first
     uint24_t value = ezom_lookup_variable(name, context);
     if (value != g_nil) {
+        printf("   Debug: Found in context: 0x%06X\n", value);
         return ezom_make_result(value);
     }
     
     // Look up in globals
     value = ezom_lookup_global(name);
     if (value != g_nil) {
+        printf("   Debug: Found in globals: 0x%06X\n", value);
         return ezom_make_result(value);
     }
     
     // Special cases for reserved words
     if (strcmp(name, "nil") == 0) {
+        printf("   Debug: Returning g_nil: 0x%06X\n", g_nil);
         return ezom_make_result(g_nil);
     }
     if (strcmp(name, "true") == 0) {
+        printf("   Debug: Returning g_true: 0x%06X\n", g_true);
         return ezom_make_result(g_true);
     }
     if (strcmp(name, "false") == 0) {
+        printf("   Debug: Returning g_false: 0x%06X\n", g_false);
         return ezom_make_result(g_false);
     }
     if (strcmp(name, "self") == 0) {
         // Return current receiver
         if (context) {
             ezom_context_t* ctx = (ezom_context_t*)EZOM_OBJECT_PTR(context);
+            printf("   Debug: Returning self: 0x%06X\n", ctx->receiver);
             return ezom_make_result(ctx->receiver);
         }
     }
     
+    printf("   Debug: Undefined variable: '%s'\n", name);
     return ezom_make_error_result("Undefined variable");
 }
 
@@ -825,6 +842,93 @@ uint24_t ezom_compile_method_from_ast(ezom_ast_node_t* method_ast) {
     // For now, return a pointer to the AST node itself
     // This allows the method to be "executed" by evaluating the AST
     return (uint24_t)method_ast;
+}
+
+// Message send evaluation functions
+ezom_eval_result_t ezom_evaluate_unary_message(ezom_ast_node_t* node, uint24_t context) {
+    if (!node || node->type != AST_UNARY_MESSAGE) {
+        return ezom_make_error_result("Invalid unary message node");
+    }
+    
+    // Evaluate the receiver
+    ezom_eval_result_t receiver_result = ezom_evaluate_ast(node->data.message_send.receiver, context);
+    if (receiver_result.is_error) {
+        return receiver_result;
+    }
+    
+    // Send the unary message
+    uint24_t selector = ezom_create_symbol(node->data.message_send.selector, 
+                                         strlen(node->data.message_send.selector));
+    uint24_t result = ezom_send_unary_message(receiver_result.value, selector);
+    
+    return ezom_make_result(result);
+}
+
+ezom_eval_result_t ezom_evaluate_binary_message(ezom_ast_node_t* node, uint24_t context) {
+    if (!node || node->type != AST_BINARY_MESSAGE) {
+        return ezom_make_error_result("Invalid binary message node");
+    }
+    
+    // Evaluate the receiver
+    ezom_eval_result_t receiver_result = ezom_evaluate_ast(node->data.message_send.receiver, context);
+    if (receiver_result.is_error) {
+        return receiver_result;
+    }
+    
+    // Evaluate the argument (binary messages have one argument)
+    ezom_eval_result_t arg_result = ezom_evaluate_ast(node->data.message_send.arguments, context);
+    if (arg_result.is_error) {
+        return arg_result;
+    }
+    
+    // Send the binary message
+    uint24_t selector = ezom_create_symbol(node->data.message_send.selector, 
+                                         strlen(node->data.message_send.selector));
+    uint24_t result = ezom_send_binary_message(receiver_result.value, selector, arg_result.value);
+    
+    return ezom_make_result(result);
+}
+
+ezom_eval_result_t ezom_evaluate_keyword_message(ezom_ast_node_t* node, uint24_t context) {
+    if (!node || node->type != AST_KEYWORD_MESSAGE) {
+        return ezom_make_error_result("Invalid keyword message node");
+    }
+    
+    // Evaluate the receiver
+    ezom_eval_result_t receiver_result = ezom_evaluate_ast(node->data.message_send.receiver, context);
+    if (receiver_result.is_error) {
+        return receiver_result;
+    }
+    
+    // For keyword messages, the selector is already built in the parser
+    uint24_t selector = ezom_create_symbol(node->data.message_send.selector, 
+                                         strlen(node->data.message_send.selector));
+    
+    // Evaluate arguments
+    uint24_t args[16]; // Maximum 16 arguments
+    uint8_t arg_count = 0;
+    
+    ezom_ast_node_t* current_arg = node->data.message_send.arguments;
+    while (current_arg && arg_count < 16) {
+        ezom_eval_result_t arg_result = ezom_evaluate_ast(current_arg, context);
+        if (arg_result.is_error) {
+            return arg_result;
+        }
+        args[arg_count++] = arg_result.value;
+        current_arg = current_arg->next;
+    }
+    
+    // Create message and send it
+    ezom_message_t message = {
+        .receiver = receiver_result.value,
+        .selector = selector,
+        .args = args,
+        .arg_count = arg_count
+    };
+    
+    uint24_t result = ezom_send_message(&message);
+    
+    return ezom_make_result(result);
 }
 
 // Variable evaluation (instance variables, locals, parameters)

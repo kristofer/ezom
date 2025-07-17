@@ -90,3 +90,8 @@ uint24_t ezom_get_context_receiver(uint24_t context_ptr);
 uint24_t ezom_get_local_variable(uint24_t context_ptr, uint16_t index);
 uint24_t ezom_get_parameter(uint24_t context_ptr, uint16_t index);
 void ezom_set_local_variable(uint24_t context_ptr, uint16_t index, uint24_t value);
+
+// Message evaluation functions
+ezom_eval_result_t ezom_evaluate_unary_message(ezom_ast_node_t* node, uint24_t context);
+ezom_eval_result_t ezom_evaluate_binary_message(ezom_ast_node_t* node, uint24_t context);
+ezom_eval_result_t ezom_evaluate_keyword_message(ezom_ast_node_t* node, uint24_t context);

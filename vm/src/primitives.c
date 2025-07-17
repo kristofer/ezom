@@ -638,7 +638,7 @@ uint24_t prim_array_length(uint24_t receiver, uint24_t* args, uint8_t arg_count)
 }
 
 // ============================================================================
-// BOOLEAN PRIMITIVES
+// BOOLEAN PRIMITIVES (PHASE 4.3.1 ENHANCED)
 // ============================================================================
 
 // True>>ifTrue:
@@ -652,24 +652,55 @@ uint24_t prim_true_if_true(uint24_t receiver, uint24_t* args, uint8_t arg_count)
         return g_nil;
     }
     
-    // For now, just return true (successful execution) instead of trying to evaluate the block
-    // Block evaluation will be implemented in a later phase
-    return g_true;
+    // Check if argument is a block
+    if (!ezom_is_block(args[0])) {
+        printf("Type error: ifTrue: sent with non-block argument\n");
+        return g_nil;
+    }
+    
+    // Evaluate the true block and return its result
+    return g_primitives[PRIM_BLOCK_VALUE](args[0], NULL, 0);
 }
 
 // True>>ifFalse:
 uint24_t prim_true_if_false(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    // True object ignores false block
+    if (arg_count != 1 || !args || !args[0]) {
+        return g_nil;
+    }
+    
+    // Verify receiver is true
+    if (receiver != g_true) {
+        return g_nil;
+    }
+    
+    // Check if argument is a block (for consistency)
+    if (!ezom_is_block(args[0])) {
+        printf("Type error: ifFalse: sent with non-block argument\n");
+        return g_nil;
+    }
+    
+    // True object ignores false block - return nil (block not executed)
     return g_nil;
 }
 
 // True>>ifTrue:ifFalse:
 uint24_t prim_true_if_true_if_false(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 2 || !ezom_is_block(args[0])) {
+    if (arg_count != 2 || !args || !args[0] || !args[1]) {
         return g_nil;
     }
     
-    // Evaluate the true block (first argument)
+    // Verify receiver is true
+    if (receiver != g_true) {
+        return g_nil;
+    }
+    
+    // Check if both arguments are blocks
+    if (!ezom_is_block(args[0]) || !ezom_is_block(args[1])) {
+        printf("Type error: ifTrue:ifFalse: sent with non-block argument(s)\n");
+        return g_nil;
+    }
+    
+    // Evaluate the true block (first argument) and return its result
     return g_primitives[PRIM_BLOCK_VALUE](args[0], NULL, 0);
 }
 
@@ -684,27 +715,55 @@ uint24_t prim_false_if_true(uint24_t receiver, uint24_t* args, uint8_t arg_count
         return g_nil;
     }
     
+    // Check if argument is a block (for consistency)
+    if (!ezom_is_block(args[0])) {
+        printf("Type error: ifTrue: sent with non-block argument\n");
+        return g_nil;
+    }
+    
     // False object ignores true block - return nil (block not executed)
     return g_nil;
 }
 
 // False>>ifFalse:
 uint24_t prim_false_if_false(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 1 || !ezom_is_block(args[0])) {
+    if (arg_count != 1 || !args || !args[0]) {
         return g_nil;
     }
     
-    // Evaluate the block
+    // Verify receiver is false
+    if (receiver != g_false) {
+        return g_nil;
+    }
+    
+    // Check if argument is a block
+    if (!ezom_is_block(args[0])) {
+        printf("Type error: ifFalse: sent with non-block argument\n");
+        return g_nil;
+    }
+    
+    // Evaluate the false block and return its result
     return g_primitives[PRIM_BLOCK_VALUE](args[0], NULL, 0);
 }
 
 // False>>ifTrue:ifFalse:
 uint24_t prim_false_if_true_if_false(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
-    if (arg_count != 2 || !ezom_is_block(args[1])) {
+    if (arg_count != 2 || !args || !args[0] || !args[1]) {
         return g_nil;
     }
     
-    // Evaluate the false block (second argument)
+    // Verify receiver is false
+    if (receiver != g_false) {
+        return g_nil;
+    }
+    
+    // Check if both arguments are blocks
+    if (!ezom_is_block(args[0]) || !ezom_is_block(args[1])) {
+        printf("Type error: ifTrue:ifFalse: sent with non-block argument(s)\n");
+        return g_nil;
+    }
+    
+    // Evaluate the false block (second argument) and return its result
     return g_primitives[PRIM_BLOCK_VALUE](args[1], NULL, 0);
 }
 
