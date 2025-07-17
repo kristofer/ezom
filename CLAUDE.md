@@ -40,37 +40,52 @@ The target platform is ez80 Agon Light 2 using:
 
 ## Architecture Overview
 
-EZOM is implemented in phases, with the current code representing Phase 1 - a complete implementation split into modular files:
+EZOM is implemented in phases, with the current code representing Phase 3 complete and Phase 4.3.1 completed:
+
+### Current Implementation Status
+
+**Phase 3 ✅ COMPLETE**: Advanced object system with full SOM-compatible class hierarchy
+**Phase 4.3.1 ✅ COMPLETE**: Conditional statements with block-based evaluation
+**Phase 4.3.2 ✅ COMPLETE**: Loop constructs with Integer and Block loop methods
 
 ### Core Components
 
 **Object System** (`src/vm/object.c`, `src/vm/objects.c`, `src/include/ezom_object.h`):
 - 6-byte object headers with class pointers, hash codes, and type flags
-- Built-in types: Object, Integer, String, Symbol, Class
+- Built-in types: Object, Integer, String, Symbol, Class, Boolean, Block, Context, Array
 - Method dictionaries with primitive function dispatch
+- Complete SOM-compatible class hierarchy with inheritance
 - Class hierarchy with single inheritance
 
 **Memory Management** (`src/vm/memory.c`, `src/include/ezom_memory.h`):
-- Simple bump allocator for ez80 heap (56KB at 0x042000)
-- 2-byte aligned allocation 
-- Basic statistics tracking
-- Will be extended with GC in Phase 3
+**Memory Management** (`src/vm/memory.c`, `src/include/ezom_memory.h`):
+- Complete garbage collection system with mark-and-sweep
+- Object allocation with reference tracking
+- 256KB heap for native development (56KB for ez80)
+- Enhanced memory tracking and debugging
 
 **Method Dispatch** (`src/vm/dispatch.c`, `src/include/ezom_dispatch.h`):
 - Linear search in class hierarchy for method lookup
-- Message sending with argument handling
-- Primitive function table for built-in operations
-- Support for unary and binary messages
+- Message sending with argument handling including keyword messages
+- Primitive function table for built-in operations (80+ primitives)
+- Support for unary, binary, and keyword messages
 
 **Primitive Operations** (`src/vm/primitives.c`, `src/include/ezom_primitives.h`):
 - Object primitives: class, =, hash, println
-- Integer arithmetic: +, -, *, =
-- String operations: length, concatenation
+- Integer arithmetic: +, -, *, /, =, <, >, etc.
+- String operations: length, concatenation, comparison
+- Boolean operations: ifTrue:, ifFalse:, ifTrue:ifFalse:, not
+- Block evaluation: value, value:
+- Array operations: at:, at:put:, length
 - Type checking and error handling
 
-See @ARCHITECTURE.md
+**Block System** (`src/vm/context.c`, `src/vm/evaluator.c`):
+- Block objects with proper EZOM_TYPE_BLOCK flags
+- Block evaluation with context creation
+- Closure support for accessing outer scope variables
+- Working conditional statements with block-based evaluation
 
-and @Phase1-2.md and @Phase3.md
+See @ARCHITECTURE.md and @Phase1-2.md and @Phase3.md and @PHASE4_IMPLEMENTATION_PLAN.md
 
 ### Memory Layout (ez80 Specific)
 
@@ -88,9 +103,30 @@ and @Phase1-2.md and @Phase3.md
 
 **Method Installation**: Methods added to classes via helper functions that create symbols and populate method dictionaries.
 
-**Message Sending**: Two main interfaces:
+**Message Sending**: Three main interfaces:
 - `ezom_send_unary_message(receiver, selector)` 
 - `ezom_send_binary_message(receiver, selector, arg)`
+- `ezom_send_message(msg)` for keyword messages with multiple arguments
+
+**Block Objects**: Created via `ezom_create_ast_block()` with proper type flags and context binding.
+
+**Conditional Evaluation**: Uses boolean primitives 50-56 for ifTrue:, ifFalse:, ifTrue:ifFalse:, and not operations.
+
+## Current Development Status
+
+**COMPLETED (Phase 4.3.2)**: Full loop construct support
+- ✅ Integer loop methods (to:do:, timesRepeat:)
+- ✅ Block loop methods (whileTrue:, whileFalse:)
+- ✅ Proper loop variable scoping and block parameter passing
+- ✅ All loop primitives working (24, 25, 62, 63)
+- ✅ Comprehensive test suite validation
+
+**NEXT PRIORITY**: Based on PHASE4_IMPLEMENTATION_PLAN.md, the next logical step is implementing 4.2.2 Block Objects Enhancement, which includes:
+- Block parameters `[ :param | ... ]` and local variables `[ | local | ... ]`
+- Enhanced closure capture of outer scope variables
+- More sophisticated block evaluation contexts
+
+However, you should validate this priority with the user before proceeding, as they may want to focus on other Phase 4 components like class definition parsing or file loading first.
 
 **Error Handling**: Simple printf-based error reporting, returns 0/NULL on failure.
 

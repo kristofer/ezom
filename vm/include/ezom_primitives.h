@@ -70,6 +70,8 @@ typedef uint24_t (*ezom_primitive_fn)(uint24_t receiver, uint24_t* args, uint8_t
 // Block primitives (NEW)
 #define PRIM_BLOCK_VALUE        60
 #define PRIM_BLOCK_VALUE_WITH   61
+#define PRIM_BLOCK_WHILE_TRUE   62
+#define PRIM_BLOCK_WHILE_FALSE  63
 
 #define MAX_PRIMITIVES          80
 

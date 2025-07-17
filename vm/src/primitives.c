@@ -75,6 +75,8 @@ uint24_t prim_boolean_not(uint24_t receiver, uint24_t* args, uint8_t arg_count);
 
 uint24_t prim_block_value(uint24_t receiver, uint24_t* args, uint8_t arg_count);
 uint24_t prim_block_value_with(uint24_t receiver, uint24_t* args, uint8_t arg_count);
+uint24_t prim_block_while_true(uint24_t receiver, uint24_t* args, uint8_t arg_count);
+uint24_t prim_block_while_false(uint24_t receiver, uint24_t* args, uint8_t arg_count);
 
 void ezom_init_primitives(void) {
     // Clear primitive table
@@ -128,6 +130,8 @@ void ezom_init_primitives(void) {
     // Install Block primitives (NEW)
     g_primitives[PRIM_BLOCK_VALUE] = prim_block_value;
     g_primitives[PRIM_BLOCK_VALUE_WITH] = prim_block_value_with;
+    g_primitives[PRIM_BLOCK_WHILE_TRUE] = prim_block_while_true;
+    g_primitives[PRIM_BLOCK_WHILE_FALSE] = prim_block_while_false;
     
     printf("EZOM: Enhanced primitives initialized (%d total)\n", MAX_PRIMITIVES);
 }
@@ -822,6 +826,80 @@ uint24_t prim_block_value_with(uint24_t receiver, uint24_t* args, uint8_t arg_co
     
     // Execute block with one parameter
     return ezom_block_evaluate(receiver, args, 1);
+}
+
+// Block>>whileTrue:
+uint24_t prim_block_while_true(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
+    if (!ezom_is_block(receiver)) {
+        printf("Type error: whileTrue: sent to non-block\n");
+        return g_nil;
+    }
+    
+    if (arg_count != 1 || !ezom_is_block(args[0])) {
+        printf("Type error: whileTrue: expects one block argument\n");
+        return g_nil;
+    }
+    
+    ezom_block_t* condition_block = (ezom_block_t*)EZOM_OBJECT_PTR(receiver);
+    uint24_t body_block = args[0];
+    
+    if (condition_block->param_count != 0) {
+        printf("Condition block must have no parameters\n");
+        return g_nil;
+    }
+    
+    // Execute while loop: [ condition ] whileTrue: [ body ]
+    while (true) {
+        // Evaluate condition block
+        uint24_t result = ezom_block_evaluate(receiver, NULL, 0);
+        
+        // Check if result is true
+        if (result == g_true) {
+            // Execute body block
+            g_primitives[PRIM_BLOCK_VALUE](body_block, NULL, 0);
+        } else {
+            break;
+        }
+    }
+    
+    return g_nil;
+}
+
+// Block>>whileFalse:
+uint24_t prim_block_while_false(uint24_t receiver, uint24_t* args, uint8_t arg_count) {
+    if (!ezom_is_block(receiver)) {
+        printf("Type error: whileFalse: sent to non-block\n");
+        return g_nil;
+    }
+    
+    if (arg_count != 1 || !ezom_is_block(args[0])) {
+        printf("Type error: whileFalse: expects one block argument\n");
+        return g_nil;
+    }
+    
+    ezom_block_t* condition_block = (ezom_block_t*)EZOM_OBJECT_PTR(receiver);
+    uint24_t body_block = args[0];
+    
+    if (condition_block->param_count != 0) {
+        printf("Condition block must have no parameters\n");
+        return g_nil;
+    }
+    
+    // Execute while loop: [ condition ] whileFalse: [ body ]
+    while (true) {
+        // Evaluate condition block
+        uint24_t result = ezom_block_evaluate(receiver, NULL, 0);
+        
+        // Check if result is false
+        if (result == g_false) {
+            // Execute body block
+            g_primitives[PRIM_BLOCK_VALUE](body_block, NULL, 0);
+        } else {
+            break;
+        }
+    }
+    
+    return g_nil;
 }
 
 // ============================================================================

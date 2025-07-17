@@ -724,6 +724,8 @@ void ezom_install_block_methods(void) {
     
     add_method_to_dict(dict, "value", PRIM_BLOCK_VALUE, 0);
     add_method_to_dict(dict, "value:", PRIM_BLOCK_VALUE_WITH, 1);
+    add_method_to_dict(dict, "whileTrue:", PRIM_BLOCK_WHILE_TRUE, 1);
+    add_method_to_dict(dict, "whileFalse:", PRIM_BLOCK_WHILE_FALSE, 1);
     add_method_to_dict(dict, "println", PRIM_OBJECT_PRINTLN, 0);
     
     printf("      Installed %d methods in Block\n", dict->size);
