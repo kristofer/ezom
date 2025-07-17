@@ -1,171 +1,165 @@
 EZOM VM Debug Log Started
 ========================
 
-Bootstrapping basic classes...
-About to allocate Object class
-Object class allocated at 0x042000
-About to init Object class
-Object class initialized
-About to create Object class method dictionary
-Object class method dictionary created at 0x042018
-Phase 3: Creating method dictionaries...
-   g_object_class = 0x042248
-   g_symbol_class = 0x042270
-   Condition passed - creating method dictionaries...
-   Object class method dictionary created at 0x042360
-   Symbol class method dictionary created at 0x0423CC
-   Installing methods in all classes...
-   About to install Object methods...
-   Installing Object methods...
-   g_object_class = 0x042248
-   object_class->method_dict = 0x042360
-   dict capacity: 8, size: 0
-     Adding method 'class' (prim 1)...
- [dict=0x148008360, size=0, capacity=8]
- Creating method at index 0... method ptr=0x14800836C Creating symbol... selector='class' len=5... symbol=0x042834 Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method '=' (prim 2)...
- [dict=0x148008360, size=1, capacity=8]
- Creating method at index 1... method ptr=0x148008378 Creating symbol... selector='=' len=1... symbol=0x042846 Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method 'hash' (prim 3)...
- [dict=0x148008360, size=2, capacity=8]
- Creating method at index 2... method ptr=0x148008384 Creating symbol... selector='hash' len=4... symbol=0x042854 Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method 'println' (prim 4)...
- [dict=0x148008360, size=3, capacity=8]
- Creating method at index 3... method ptr=0x148008390 Creating symbol... selector='println' len=7... symbol=0x042866 Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-     Adding method 'isNil' (prim 5)...
- [dict=0x148008360, size=4, capacity=8]
- Creating method at index 4... method ptr=0x14800839C Creating symbol... selector='isNil' len=5... symbol=0x04287A Setting method fields... Incrementing dict size... SUCCESS (dict size now 5)
-     Adding method 'notNil' (prim 6)...
- [dict=0x148008360, size=5, capacity=8]
- Creating method at index 5... method ptr=0x1480083A8 Creating symbol... selector='notNil' len=6... symbol=0x04288C Setting method fields... Incrementing dict size... SUCCESS (dict size now 6)
-   About to install Integer methods...
-     Adding method '+' (prim 10)...
- [dict=0x148008408, size=0, capacity=16]
- Creating method at index 0... method ptr=0x148008414 Creating symbol... selector='+' len=1... symbol=0x0428A0 Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method '-' (prim 11)...
- [dict=0x148008408, size=1, capacity=16]
- Creating method at index 1... method ptr=0x148008420 Creating symbol... selector='-' len=1... symbol=0x0428AE Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method '*' (prim 12)...
- [dict=0x148008408, size=2, capacity=16]
- Creating method at index 2... method ptr=0x14800842C Creating symbol... selector='*' len=1... symbol=0x0428BC Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method '/' (prim 13)...
- [dict=0x148008408, size=3, capacity=16]
- Creating method at index 3... method ptr=0x148008438 Creating symbol... selector='/' len=1... symbol=0x0428CA Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-     Adding method '\' (prim 14)...
- [dict=0x148008408, size=4, capacity=16]
- Creating method at index 4... method ptr=0x148008444 Creating symbol... selector='\' len=1... symbol=0x0428D8 Setting method fields... Incrementing dict size... SUCCESS (dict size now 5)
-     Adding method 'abs' (prim 23)...
- [dict=0x148008408, size=5, capacity=16]
- Creating method at index 5... method ptr=0x148008450 Creating symbol... selector='abs' len=3... symbol=0x0428E6 Setting method fields... Incrementing dict size... SUCCESS (dict size now 6)
-     Adding method '<' (prim 15)...
- [dict=0x148008408, size=6, capacity=16]
- Creating method at index 6... method ptr=0x14800845C Creating symbol... selector='<' len=1... symbol=0x0428F6 Setting method fields... Incrementing dict size... SUCCESS (dict size now 7)
-     Adding method '>' (prim 16)...
- [dict=0x148008408, size=7, capacity=16]
- Creating method at index 7... method ptr=0x148008468 Creating symbol... selector='>' len=1... symbol=0x042904 Setting method fields... Incrementing dict size... SUCCESS (dict size now 8)
-     Adding method '<=' (prim 17)...
- [dict=0x148008408, size=8, capacity=16]
- Creating method at index 8... method ptr=0x148008474 Creating symbol... selector='<=' len=2... symbol=0x042912 Setting method fields... Incrementing dict size... SUCCESS (dict size now 9)
-     Adding method '>=' (prim 18)...
- [dict=0x148008408, size=9, capacity=16]
- Creating method at index 9... method ptr=0x148008480 Creating symbol... selector='>=' len=2... symbol=0x042922 Setting method fields... Incrementing dict size... SUCCESS (dict size now 10)
-     Adding method '=' (prim 19)...
- [dict=0x148008408, size=10, capacity=16]
- Creating method at index 10... method ptr=0x14800848C Creating symbol... selector='=' len=1... symbol=0x042932 Setting method fields... Incrementing dict size... SUCCESS (dict size now 11)
-     Adding method '~=' (prim 20)...
- [dict=0x148008408, size=11, capacity=16]
- Creating method at index 11... method ptr=0x148008498 Creating symbol... selector='~=' len=2... symbol=0x042940 Setting method fields... Incrementing dict size... SUCCESS (dict size now 12)
-     Adding method 'asString' (prim 21)...
- [dict=0x148008408, size=12, capacity=16]
- Creating method at index 12... method ptr=0x1480084A4 Creating symbol... selector='asString' len=8... symbol=0x042950 Setting method fields... Incrementing dict size... SUCCESS (dict size now 13)
-     Adding method 'to:do:' (prim 24)...
- [dict=0x148008408, size=13, capacity=16]
- Creating method at index 13... method ptr=0x1480084B0 Creating symbol... selector='to:do:' len=6... symbol=0x042966 Setting method fields... Incrementing dict size... SUCCESS (dict size now 14)
-     Adding method 'timesRepeat:' (prim 25)...
- [dict=0x148008408, size=14, capacity=16]
- Creating method at index 14... method ptr=0x1480084BC Creating symbol... selector='timesRepeat:' len=12... symbol=0x04297A Setting method fields... Incrementing dict size... SUCCESS (dict size now 15)
-     Adding method 'println' (prim 4)...
- [dict=0x148008408, size=15, capacity=16]
- Creating method at index 15... method ptr=0x1480084C8 Creating symbol... selector='println' len=7... symbol=0x042994 Setting method fields... Incrementing dict size... SUCCESS (dict size now 16)
-      Installed 16 methods in Integer
-   END ezom_install_integer_methods function
-   COMPLETED Integer methods installation
-   About to install String methods...
-     Adding method 'length' (prim 30)...
- [dict=0x1480084D4, size=0, capacity=8]
- Creating method at index 0... method ptr=0x1480084E0 Creating symbol... selector='length' len=6... symbol=0x0429A8 Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method '+' (prim 32)...
- [dict=0x1480084D4, size=1, capacity=8]
- Creating method at index 1... method ptr=0x1480084EC Creating symbol... selector='+' len=1... symbol=0x0429BC Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method '=' (prim 33)...
- [dict=0x1480084D4, size=2, capacity=8]
- Creating method at index 2... method ptr=0x1480084F8 Creating symbol... selector='=' len=1... symbol=0x0429CA Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method 'println' (prim 4)...
- [dict=0x1480084D4, size=3, capacity=8]
- Creating method at index 3... method ptr=0x148008504 Creating symbol... selector='println' len=7... symbol=0x0429D8 Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-   COMPLETED String methods installation
-   About to install Array methods...
-     Adding method 'at:' (prim 41)...
- [dict=0x148008684, size=0, capacity=16]
- Creating method at index 0... method ptr=0x148008690 Creating symbol... selector='at:' len=3... symbol=0x0429EC Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method 'at:put:' (prim 42)...
- [dict=0x148008684, size=1, capacity=16]
- Creating method at index 1... method ptr=0x14800869C Creating symbol... selector='at:put:' len=7... symbol=0x0429FC Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method 'length' (prim 43)...
- [dict=0x148008684, size=2, capacity=16]
- Creating method at index 2... method ptr=0x1480086A8 Creating symbol... selector='length' len=6... symbol=0x042A10 Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method 'println' (prim 4)...
- [dict=0x148008684, size=3, capacity=16]
- Creating method at index 3... method ptr=0x1480086B4 Creating symbol... selector='println' len=7... symbol=0x042A24 Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-   About to install Boolean methods...
-   Installing Boolean methods...
-   g_true_class = 0x0422D0
-   g_false_class = 0x0422E8
-   true_class->method_dict = 0x0425AC
-     Adding method 'ifTrue:' (prim 50)...
- [dict=0x1480085AC, size=0, capacity=8]
- Creating method at index 0... method ptr=0x1480085B8 Creating symbol... selector='ifTrue:' len=7... symbol=0x042A38 Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method 'ifFalse:' (prim 51)...
- [dict=0x1480085AC, size=1, capacity=8]
- Creating method at index 1... method ptr=0x1480085C4 Creating symbol... selector='ifFalse:' len=8... symbol=0x042A4C Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method 'ifTrue:ifFalse:' (prim 52)...
- [dict=0x1480085AC, size=2, capacity=8]
- Creating method at index 2... method ptr=0x1480085D0 Creating symbol... selector='ifTrue:ifFalse:' len=15... symbol=0x042A62 Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method 'not' (prim 56)...
- [dict=0x1480085AC, size=3, capacity=8]
- Creating method at index 3... method ptr=0x1480085DC Creating symbol... selector='not' len=3... symbol=0x042A7E Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-     Adding method 'println' (prim 4)...
- [dict=0x1480085AC, size=4, capacity=8]
- Creating method at index 4... method ptr=0x1480085E8 Creating symbol... selector='println' len=7... symbol=0x042A8E Setting method fields... Incrementing dict size... SUCCESS (dict size now 5)
-   false_class->method_dict = 0x042618
-     Adding method 'ifTrue:' (prim 53)...
- [dict=0x148008618, size=0, capacity=8]
- Creating method at index 0... method ptr=0x148008624 Creating symbol... selector='ifTrue:' len=7... symbol=0x042AA2 Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method 'ifFalse:' (prim 54)...
- [dict=0x148008618, size=1, capacity=8]
- Creating method at index 1... method ptr=0x148008630 Creating symbol... selector='ifFalse:' len=8... symbol=0x042AB6 Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method 'ifTrue:ifFalse:' (prim 55)...
- [dict=0x148008618, size=2, capacity=8]
- Creating method at index 2... method ptr=0x14800863C Creating symbol... selector='ifTrue:ifFalse:' len=15... symbol=0x042ACC Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method 'not' (prim 56)...
- [dict=0x148008618, size=3, capacity=8]
- Creating method at index 3... method ptr=0x148008648 Creating symbol... selector='not' len=3... symbol=0x042AE8 Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-     Adding method 'println' (prim 4)...
- [dict=0x148008618, size=4, capacity=8]
- Creating method at index 4... method ptr=0x148008654 Creating symbol... selector='println' len=7... symbol=0x042AF8 Setting method fields... Incrementing dict size... SUCCESS (dict size now 5)
-   About to install Block methods...
-     Adding method 'value' (prim 60)...
- [dict=0x148008750, size=0, capacity=8]
- Creating method at index 0... method ptr=0x14800875C Creating symbol... selector='value' len=5... symbol=0x042B0C Setting method fields... Incrementing dict size... SUCCESS (dict size now 1)
-     Adding method 'value:' (prim 61)...
- [dict=0x148008750, size=1, capacity=8]
- Creating method at index 1... method ptr=0x148008768 Creating symbol... selector='value:' len=6... symbol=0x042B1E Setting method fields... Incrementing dict size... SUCCESS (dict size now 2)
-     Adding method 'whileTrue:' (prim 62)...
- [dict=0x148008750, size=2, capacity=8]
- Creating method at index 2... method ptr=0x148008774 Creating symbol... selector='whileTrue:' len=10... symbol=0x042B32 Setting method fields... Incrementing dict size... SUCCESS (dict size now 3)
-     Adding method 'whileFalse:' (prim 63)...
- [dict=0x148008750, size=3, capacity=8]
- Creating method at index 3... method ptr=0x148008780 Creating symbol... selector='whileFalse:' len=11... symbol=0x042B4A Setting method fields... Incrementing dict size... SUCCESS (dict size now 4)
-     Adding method 'println' (prim 4)...
- [dict=0x148008750, size=4, capacity=8]
- Creating method at index 4... method ptr=0x14800878C Creating symbol... selector='println' len=7... symbol=0x042B62 Setting method fields... Incrementing dict size... SUCCESS (dict size now 5)
+DEBUG: ezom_send_message entry, receiver=0x042CF6
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D0E
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1400081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Calling improved integer addition primitive
+DEBUG: About to call primitive function
+DEBUG: prim_num=10, function_ptr=0x100E179A8
+DEBUG: receiver=0x042CF6, args=0x16EFFA25C, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042D28
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D40
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1400081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Calling improved integer addition primitive
+DEBUG: About to call primitive function
+DEBUG: prim_num=10, function_ptr=0x100E179A8
+DEBUG: receiver=0x042D28, args=0x16EFFA1EC, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042D4E
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D66
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 2
+DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
+DEBUG: Returning method=0x1400081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 12
+DEBUG: About to call primitive function
+DEBUG: prim_num=12, function_ptr=0x100E17BE8
+DEBUG: receiver=0x042D4E, args=0x16EFFA24C, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042D80
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042D98
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 1
+DEBUG: Method selector=0x04266E, code=0x00000B, flags=0x01
+DEBUG: Returning method=0x1400081E0, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 11
+DEBUG: About to call primitive function
+DEBUG: prim_num=11, function_ptr=0x100E17B18
+DEBUG: receiver=0x042D80, args=0x16EFFA1EC, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042DA6
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DBE
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1400081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Calling improved integer addition primitive
+DEBUG: About to call primitive function
+DEBUG: prim_num=10, function_ptr=0x100E179A8
+DEBUG: receiver=0x042DA6, args=0x16EFFA24C, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042DD8
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042DF0
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 3
+DEBUG: Method selector=0x04268A, code=0x00000D, flags=0x01
+DEBUG: Returning method=0x1400081F8, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 13
+DEBUG: About to call primitive function
+DEBUG: prim_num=13, function_ptr=0x100E17CB8
+DEBUG: receiver=0x042DD8, args=0x16EFFA1DC, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042E0A
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E22
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 2
+DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
+DEBUG: Returning method=0x1400081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 12
+DEBUG: About to call primitive function
+DEBUG: prim_num=12, function_ptr=0x100E17BE8
+DEBUG: receiver=0x042E0A, args=0x16EFFA1DC, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042DFE
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E3C
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1400081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Calling improved integer addition primitive
+DEBUG: About to call primitive function
+DEBUG: prim_num=10, function_ptr=0x100E179A8
+DEBUG: receiver=0x042DFE, args=0x16EFFA23C, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042E56
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E6E
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 6
+DEBUG: Method selector=0x0426B6, code=0x00000F, flags=0x01
+DEBUG: Returning method=0x14000821C, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 15
+DEBUG: About to call primitive function
+DEBUG: prim_num=15, function_ptr=0x100E17F24
+DEBUG: receiver=0x042E56, args=0x16EFFA26C, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042E7C
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042E94
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1400081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Calling improved integer addition primitive
+DEBUG: About to call primitive function
+DEBUG: prim_num=10, function_ptr=0x100E179A8
+DEBUG: receiver=0x042E7C, args=0x16EFFA16C, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042EA2
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042EBA
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 2
+DEBUG: Method selector=0x04267C, code=0x00000C, flags=0x01
+DEBUG: Returning method=0x1400081EC, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 12
+DEBUG: About to call primitive function
+DEBUG: prim_num=12, function_ptr=0x100E17BE8
+DEBUG: receiver=0x042EA2, args=0x16EFFA1CC, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042ED4
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042EEC
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 0
+DEBUG: Method selector=0x042660, code=0x00000A, flags=0x01
+DEBUG: Returning method=0x1400081D4, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 10
+DEBUG: Calling improved integer addition primitive
+DEBUG: About to call primitive function
+DEBUG: prim_num=10, function_ptr=0x100E179A8
+DEBUG: receiver=0x042ED4, args=0x16EFFA1CC, arg_count=1
+DEBUG: Calling primitive function now...
+DEBUG: ezom_send_message entry, receiver=0x042EC8
+DEBUG: ezom_lookup_method entry, class_ptr=0x042048, selector=0x042F06
+DEBUG: Checking class 0x140008048 (depth 0)
+DEBUG: Method dictionary has 16 methods
+DEBUG: Found method at index 1
+DEBUG: Method selector=0x04266E, code=0x00000B, flags=0x01
+DEBUG: Returning method=0x1400081E0, class_ptr=0x042048, is_primitive=1
+DEBUG: Found primitive 11
+DEBUG: About to call primitive function
+DEBUG: prim_num=11, function_ptr=0x100E17B18
+DEBUG: receiver=0x042EC8, args=0x16EFFA22C, arg_count=1
+DEBUG: Calling primitive function now...

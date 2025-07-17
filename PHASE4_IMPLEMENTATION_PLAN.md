@@ -376,7 +376,7 @@ The implementation should proceed incrementally, starting with basic class defin
    - ✅ Parameter binding and local variable scoping
    - ✅ Enhanced context creation with proper parameter name resolution
 
-2. **4.1.1 Class Definition Parser**
+2. **4.1.1 Class Definition Parser** - 🔄 IN PROGRESS
    - Parse class declaration syntax: `ClassName = SuperClass (...)`
    - Instance variable declarations and method definitions
    - Complete SOM syntax parsing framework
