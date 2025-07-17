@@ -57,6 +57,9 @@ void ezom_init_memory(void) {
     // Phase 3 Step 3: Initialize marking system
     ezom_init_marking_system();
     
+    // Phase 3 Step 4: Initialize garbage collector
+    ezom_init_garbage_collector();
+    
     printf("EZOM: Enhanced memory tracking initialized\n");
 }
 
@@ -100,6 +103,12 @@ uint24_t ezom_allocate(uint16_t size) {
 
 // Phase 3: Enhanced allocate with object type tracking
 uint24_t ezom_allocate_typed(uint16_t size, uint8_t object_type) {
+    // Check if GC should be triggered before allocation
+    if (ezom_should_gc_now()) {
+        printf("EZOM: Auto-triggering GC before allocation\n");
+        ezom_trigger_garbage_collection();
+    }
+    
     uint24_t ptr;
     
     // Use free list allocator if enabled
@@ -757,5 +766,345 @@ void ezom_sweep_detection_stats(void) {
             printf("  ... and %d more\n", garbage_count - 10);
         }
     }
-    printf("===================================\n\n");
+    printf("===================================\n");
+}
+
+// ============================================================================
+// PHASE 3 STEP 4: GARBAGE COLLECTION
+// ============================================================================
+
+// Global GC statistics
+ezom_gc_stats_t g_gc_stats;
+
+// Initialize the garbage collector
+void ezom_init_garbage_collector(void) {
+    memset(&g_gc_stats, 0, sizeof(g_gc_stats));
+    
+    // Enable GC by default
+    g_heap.gc_enabled = true;
+    
+    printf("EZOM: Garbage collector initialized\n");
+}
+
+// Trigger garbage collection based on thresholds
+bool ezom_trigger_garbage_collection(void) {
+    if (!g_heap.gc_enabled) {
+        printf("EZOM: GC disabled, skipping collection\n");
+        return false;
+    }
+    
+    if (g_gc_roots.gc_in_progress) {
+        printf("EZOM: GC already in progress\n");
+        return false;
+    }
+    
+    printf("EZOM: Triggering garbage collection...\n");
+    g_gc_stats.collections_triggered++;
+    
+    return ezom_full_garbage_collection();
+}
+
+// Perform a full mark-and-sweep garbage collection
+bool ezom_full_garbage_collection(void) {
+    if (!g_heap.gc_enabled || g_gc_roots.gc_in_progress) {
+        return false;
+    }
+    
+    printf("EZOM: Starting full garbage collection cycle\n");
+    g_gc_roots.gc_in_progress = true;
+    
+    // Record state before GC
+    g_gc_stats.objects_before_gc = g_heap.objects_allocated;
+    g_gc_stats.fragmentation_before_gc = ezom_calculate_fragmentation();
+    
+    uint16_t objects_before = g_heap.objects_allocated;
+    uint16_t bytes_before = g_heap.bytes_allocated;
+    
+    // Phase 1: Mark all reachable objects
+    printf("EZOM: GC Phase 1 - Marking reachable objects\n");
+    ezom_mark_phase();
+    
+    // Phase 2: Sweep unreachable objects
+    printf("EZOM: GC Phase 2 - Sweeping unreachable objects\n");
+    uint16_t objects_collected = ezom_sweep_phase();
+    
+    // Phase 3: Compact free lists
+    printf("EZOM: GC Phase 3 - Compacting memory\n");
+    ezom_compact_free_lists();
+    
+    // Update statistics
+    g_gc_stats.collections_performed++;
+    g_gc_stats.objects_collected += objects_collected;
+    g_gc_stats.bytes_collected += (bytes_before - g_heap.bytes_allocated);
+    g_gc_stats.objects_after_gc = g_heap.objects_allocated;
+    g_gc_stats.fragmentation_after_gc = ezom_calculate_fragmentation();
+    
+    // Reset GC trigger
+    g_heap.bytes_since_last_gc = 0;
+    
+    printf("EZOM: GC cycle complete - collected %d objects, freed %d bytes\n",
+           objects_collected, bytes_before - g_heap.bytes_allocated);
+    
+    g_gc_roots.gc_in_progress = false;
+    return true;
+}
+
+// Sweep phase - reclaim memory from unmarked objects
+uint16_t ezom_sweep_phase(void) {
+    uint24_t current = EZOM_HEAP_START;
+    uint16_t objects_swept = 0;
+    uint16_t bytes_swept = 0;
+    
+    printf("EZOM: Starting sweep phase\n");
+    
+    while (current < g_heap.next_free) {
+        if (ezom_is_valid_object(current)) {
+            ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(current);
+            
+            if (!(obj->flags & EZOM_FLAG_MARKED)) {
+                // Object is unmarked - it's garbage
+                uint16_t obj_size = ezom_calculate_object_size(current);
+                
+                printf("  Sweeping garbage object 0x%06X (size: %d)\n", current, obj_size);
+                
+                // Add to free list if free list allocator is enabled
+                if (g_heap.use_free_lists) {
+                    ezom_freelist_deallocate(current, obj_size);
+                }
+                
+                // Update statistics
+                objects_swept++;
+                bytes_swept += obj_size;
+                
+                // Update heap counters
+                g_heap.objects_allocated--;
+                g_heap.bytes_allocated -= obj_size;
+                
+                // Update object type counters
+                uint8_t type = obj->flags & 0xF0;
+                switch (type) {
+                    case EZOM_TYPE_INTEGER:
+                        g_heap.integer_objects--;
+                        break;
+                    case EZOM_TYPE_STRING:
+                    case EZOM_TYPE_SYMBOL:
+                        g_heap.string_objects--;
+                        break;
+                    case EZOM_TYPE_ARRAY:
+                        g_heap.array_objects--;
+                        break;
+                    case EZOM_TYPE_BLOCK:
+                        g_heap.block_objects--;
+                        break;
+                    default:
+                        g_heap.other_objects--;
+                        break;
+                }
+                
+                // Zero out the object memory for debugging
+                memset(obj, 0, obj_size);
+                
+                current += obj_size;
+            } else {
+                // Object is marked - keep it, but clear the mark for next GC
+                obj->flags &= ~EZOM_FLAG_MARKED;
+                
+                uint16_t obj_size = ezom_calculate_object_size(current);
+                current += obj_size;
+            }
+        } else {
+            current += 2; // Skip invalid memory
+        }
+    }
+    
+    printf("EZOM: Sweep phase complete - swept %d objects (%d bytes)\n", 
+           objects_swept, bytes_swept);
+    
+    return objects_swept;
+}
+
+// Calculate the size of an object
+uint16_t ezom_calculate_object_size(uint24_t obj_ptr) {
+    if (!ezom_is_valid_object(obj_ptr)) {
+        return 2; // Minimum size
+    }
+    
+    ezom_object_t* obj = (ezom_object_t*)EZOM_OBJECT_PTR(obj_ptr);
+    uint8_t type = obj->flags & 0xF0;
+    
+    switch (type) {
+        case EZOM_TYPE_INTEGER:
+            return sizeof(ezom_integer_t);
+            
+        case EZOM_TYPE_STRING:
+        case EZOM_TYPE_SYMBOL: {
+            ezom_string_t* str = (ezom_string_t*)obj;
+            return sizeof(ezom_string_t) + str->length + 1;
+        }
+        
+        case EZOM_TYPE_ARRAY: {
+            ezom_array_t* arr = (ezom_array_t*)obj;
+            return sizeof(ezom_array_t) + (arr->size * sizeof(uint24_t));
+        }
+        
+        case EZOM_TYPE_BLOCK:
+            return sizeof(ezom_block_t);
+            
+        case EZOM_TYPE_CLASS: {
+            ezom_class_t* cls = (ezom_class_t*)obj;
+            return sizeof(ezom_class_t) + (cls->instance_size * sizeof(uint24_t));
+        }
+        
+        default:
+            return sizeof(ezom_object_t); // Base object size
+    }
+}
+
+// Compact free lists after GC
+void ezom_compact_free_lists(void) {
+    if (!g_heap.use_free_lists) {
+        return;
+    }
+    
+    printf("EZOM: Compacting free lists\n");
+    
+    // Coalesce adjacent free blocks (simplified implementation)
+    // This is a basic implementation - a full implementation would merge adjacent blocks
+    
+    uint16_t total_blocks_before = 0;
+    uint16_t total_blocks_after = 0;
+    
+    // Count blocks before
+    for (int i = 0; i < EZOM_SIZE_CLASSES; i++) {
+        total_blocks_before += g_heap.free_counts[i];
+    }
+    
+    // For now, just report the compaction
+    total_blocks_after = total_blocks_before; // No actual compaction yet
+    
+    printf("EZOM: Free list compaction complete - %d blocks before, %d blocks after\n",
+           total_blocks_before, total_blocks_after);
+}
+
+// Calculate memory fragmentation percentage
+float ezom_calculate_fragmentation(void) {
+    if (g_heap.bytes_allocated == 0) {
+        return 0.0f;
+    }
+    
+    uint16_t total_free = EZOM_HEAP_SIZE - g_heap.bytes_allocated;
+    if (total_free == 0) {
+        return 0.0f;
+    }
+    
+    // Simple fragmentation calculation based on largest free block
+    uint16_t largest_free = g_heap.largest_free_block;
+    if (largest_free == 0) {
+        return 100.0f; // Complete fragmentation
+    }
+    
+    float fragmentation = (1.0f - (float)largest_free / (float)total_free) * 100.0f;
+    return fragmentation < 0.0f ? 0.0f : fragmentation;
+}
+
+// Enable/disable garbage collection
+void ezom_enable_gc(bool enable) {
+    g_heap.gc_enabled = enable;
+    printf("EZOM: Garbage collection %s\n", enable ? "enabled" : "disabled");
+}
+
+// Set automatic GC triggering
+void ezom_set_gc_auto_trigger(bool auto_trigger) {
+    // For now, just report the setting
+    printf("EZOM: GC auto-trigger %s\n", auto_trigger ? "enabled" : "disabled");
+}
+
+// Check if GC should run now
+bool ezom_should_gc_now(void) {
+    if (!g_heap.gc_enabled) {
+        return false;
+    }
+    
+    if (g_gc_roots.gc_in_progress) {
+        return false;
+    }
+    
+    // Check if we've exceeded the threshold
+    if (g_heap.gc_threshold > 0 && g_heap.bytes_since_last_gc >= g_heap.gc_threshold) {
+        return true;
+    }
+    
+    // Check if we're running low on memory
+    uint16_t available = EZOM_HEAP_SIZE - g_heap.bytes_allocated;
+    if (available < (EZOM_HEAP_SIZE / 10)) { // Less than 10% available
+        return true;
+    }
+    
+    return false;
+}
+
+// Create a GC checkpoint for debugging
+void ezom_gc_checkpoint(void) {
+    printf("EZOM: GC Checkpoint - %d objects, %d bytes allocated\n",
+           g_heap.objects_allocated, g_heap.bytes_allocated);
+}
+
+// Generate comprehensive GC statistics report
+void ezom_gc_stats_report(void) {
+    printf("\n=== Garbage Collection Statistics ===\n");
+    printf("Collections performed: %d\n", g_gc_stats.collections_performed);
+    printf("Objects collected: %d\n", g_gc_stats.objects_collected);
+    printf("Bytes collected: %d\n", g_gc_stats.bytes_collected);
+    printf("GC triggers: %d\n", g_gc_stats.collections_triggered);
+    
+    if (g_gc_stats.collections_performed > 0) {
+        printf("Average objects per collection: %.1f\n", 
+               (float)g_gc_stats.objects_collected / g_gc_stats.collections_performed);
+        printf("Average bytes per collection: %.1f\n", 
+               (float)g_gc_stats.bytes_collected / g_gc_stats.collections_performed);
+    }
+    
+    printf("\nLast GC cycle:\n");
+    printf("  Objects before: %d\n", g_gc_stats.objects_before_gc);
+    printf("  Objects after: %d\n", g_gc_stats.objects_after_gc);
+    printf("  Fragmentation before: %.1f%%\n", g_gc_stats.fragmentation_before_gc);
+    printf("  Fragmentation after: %.1f%%\n", g_gc_stats.fragmentation_after_gc);
+    
+    printf("\nCurrent GC status:\n");
+    printf("  GC enabled: %s\n", g_heap.gc_enabled ? "Yes" : "No");
+    printf("  GC threshold: %d bytes\n", g_heap.gc_threshold);
+    printf("  Bytes since last GC: %d\n", g_heap.bytes_since_last_gc);
+    printf("  Should trigger GC: %s\n", ezom_should_gc_now() ? "Yes" : "No");
+    printf("  GC efficiency: %.1f%%\n", ezom_gc_efficiency());
+    
+    printf("======================================\n\n");
+}
+
+// Reset GC statistics
+void ezom_reset_gc_stats(void) {
+    memset(&g_gc_stats, 0, sizeof(g_gc_stats));
+    printf("EZOM: GC statistics reset\n");
+}
+
+// Calculate GC efficiency
+float ezom_gc_efficiency(void) {
+    if (g_gc_stats.collections_performed == 0) {
+        return 0.0f;
+    }
+    
+    uint32_t total_processed = g_gc_stats.objects_before_gc * g_gc_stats.collections_performed;
+    if (total_processed == 0) {
+        return 0.0f;
+    }
+    
+    return ((float)g_gc_stats.objects_collected / total_processed) * 100.0f;
+}
+
+// Calculate GC pressure
+uint16_t ezom_gc_pressure(void) {
+    if (g_heap.gc_threshold == 0) {
+        return 0;
+    }
+    
+    return (g_heap.bytes_since_last_gc * 100) / g_heap.gc_threshold;
 }

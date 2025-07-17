@@ -131,3 +131,42 @@ void ezom_marking_stats(void);
 // Sweep detection (identifies objects for collection)
 uint16_t ezom_identify_garbage(uint24_t* garbage_list, uint16_t max_objects);
 void ezom_sweep_detection_stats(void);
+
+// Phase 3 Step 4: Garbage Collection
+typedef struct ezom_gc_stats {
+    uint16_t collections_performed;     // Total GC cycles
+    uint16_t objects_collected;         // Objects freed by GC
+    uint32_t bytes_collected;           // Bytes freed by GC
+    uint16_t collections_triggered;     // GC triggers (threshold/manual)
+    uint16_t mark_time_ms;              // Time spent in mark phase
+    uint16_t sweep_time_ms;             // Time spent in sweep phase
+    uint16_t objects_before_gc;         // Objects before last GC
+    uint16_t objects_after_gc;          // Objects after last GC
+    float fragmentation_before_gc;      // Fragmentation before GC
+    float fragmentation_after_gc;       // Fragmentation after GC
+} ezom_gc_stats_t;
+
+extern ezom_gc_stats_t g_gc_stats;
+
+// Garbage collection functions
+void ezom_init_garbage_collector(void);
+bool ezom_trigger_garbage_collection(void);
+bool ezom_full_garbage_collection(void);
+uint16_t ezom_sweep_phase(void);
+void ezom_compact_free_lists(void);
+
+// GC configuration and control
+void ezom_enable_gc(bool enable);
+void ezom_set_gc_auto_trigger(bool auto_trigger);
+bool ezom_should_gc_now(void);
+void ezom_gc_checkpoint(void);
+
+// GC statistics and reporting
+void ezom_gc_stats_report(void);
+void ezom_reset_gc_stats(void);
+float ezom_gc_efficiency(void);
+uint16_t ezom_gc_pressure(void);
+
+// Helper functions
+uint16_t ezom_calculate_object_size(uint24_t obj_ptr);
+float ezom_calculate_fragmentation(void);

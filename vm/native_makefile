@@ -11,7 +11,7 @@ OBJDIR=obj_native
 SOURCES=$(wildcard $(SRCDIR)/*.c)
 OBJECTS=$(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
-.PHONY: all clean test_phase2_complete
+.PHONY: all clean test_phase2_complete test_phase3_step4
 
 all: $(OBJDIR) $(TARGET)
 
@@ -31,4 +31,7 @@ clean:
 	rm -rf $(OBJDIR) $(TARGET) test_phase2_complete
 
 test: $(TARGET)
+	./$(TARGET)
+
+test_phase3_step4: $(TARGET)
 	./$(TARGET)
