@@ -6,6 +6,7 @@
 #include "../include/ezom_primitives.h"
 #include "../include/ezom_object.h"
 #include "../include/ezom_memory.h"
+#include "../include/ezom_context.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -737,11 +738,8 @@ uint24_t prim_block_value(uint24_t receiver, uint24_t* args, uint8_t arg_count) 
         return g_nil;
     }
     
-    // For Phase 1.5, we'll simulate block execution
-    printf("Executing block with 0 parameters\n");
-    
-    // Return nil for now - will be enhanced with proper execution in Phase 2
-    return g_nil;
+    // Execute block with no parameters
+    return ezom_block_evaluate(receiver, NULL, 0);
 }
 
 // Block>>value:
@@ -763,11 +761,8 @@ uint24_t prim_block_value_with(uint24_t receiver, uint24_t* args, uint8_t arg_co
         return g_nil;
     }
     
-    // For Phase 1.5, we'll simulate block execution with argument
-    printf("Executing block with 1 parameter\n");
-    
-    // Return the argument for now - will be enhanced with proper execution
-    return args[0];
+    // Execute block with one parameter
+    return ezom_block_evaluate(receiver, args, 1);
 }
 
 // ============================================================================

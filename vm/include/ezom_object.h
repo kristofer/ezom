@@ -103,7 +103,7 @@ typedef struct ezom_array {
 typedef struct ezom_block {
     ezom_object_t header;
     uint24_t      outer_context;    // Lexical environment
-    uint24_t      code;             // AST or bytecode pointer
+    void*         code;             // AST or bytecode pointer (native pointer)
     uint8_t       param_count;      // Number of parameters
     uint8_t       local_count;      // Number of local variables
     uint24_t      captured_vars[];  // Captured variables from outer scope

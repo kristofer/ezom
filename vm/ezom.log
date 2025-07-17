@@ -8,3 +8,13 @@ About to init Object class
 Object class initialized
 About to create Object class method dictionary
 Object class method dictionary created at 0x042018
+DEBUG: ezom_send_message entry, receiver=0x042314
+DEBUG: ezom_lookup_method entry, class_ptr=0x0420D8, selector=0x04232C
+DEBUG: Checking class 0x1600080d8 (depth 0)
+DEBUG: Method dictionary has 0 methods
+DEBUG: Method not found in this class, moving to superclass 0x042000
+DEBUG: Checking class 0x160008000 (depth 1)
+DEBUG: Method dictionary has 0 methods
+DEBUG: Method not found in this class, moving to superclass 0x000000
+DEBUG: Method not found anywhere in hierarchy
+DEBUG: ezom_send_message entry, receiver=0x000000

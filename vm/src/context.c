@@ -6,6 +6,7 @@
 #include "../include/ezom_context.h"
 #include "../include/ezom_memory.h"
 #include "../include/ezom_primitives.h"
+#include "../include/ezom_evaluator.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -154,7 +155,7 @@ uint24_t ezom_create_ast_block(ezom_ast_node_t* ast_node, uint24_t outer_context
     
     ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(ptr);
     block->outer_context = outer_context;
-    block->code = (uint24_t)ast_node; // Store AST pointer in code field
+    block->code = ast_node; // Store AST pointer directly as native pointer
     
     if (ast_node && ast_node->type == AST_BLOCK) {
         block->param_count = ezom_ast_count_parameters(ast_node->data.block.parameters);
@@ -184,8 +185,10 @@ uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_cou
                                                  block->local_count + block->param_count);
     if (!context) return g_nil;
     
-    // Bind parameters
-    ezom_context_bind_parameters(context, args, arg_count);
+    // Bind parameters to context
+    if (arg_count > 0) {
+        ezom_context_bind_parameters(context, args, arg_count);
+    }
     
     // Push context and evaluate
     ezom_push_context(context);
@@ -194,9 +197,11 @@ uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_cou
     if (block->code) {
         ezom_ast_node_t* ast = (ezom_ast_node_t*)block->code;
         if (ast->type == AST_BLOCK && ast->data.block.body) {
-            // Evaluate block body (this would use the AST evaluator)
-            // For now, just return nil
-            result = g_nil;
+            // Use AST evaluator to execute block body
+            ezom_eval_result_t eval_result = ezom_evaluate_ast(ast->data.block.body, context);
+            if (!eval_result.is_error) {
+                result = eval_result.value;
+            }
         }
     }
     

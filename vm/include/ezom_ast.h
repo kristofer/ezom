@@ -162,6 +162,7 @@ void ezom_ast_free(ezom_ast_node_t* node);
 void ezom_ast_print(ezom_ast_node_t* node, int indent);
 uint16_t ezom_ast_count_parameters(ezom_ast_node_t* params);
 uint16_t ezom_ast_count_locals(ezom_ast_node_t* locals);
+uint16_t ezom_ast_count_variables(ezom_ast_node_t* variables);
 
 // AST validation
 bool ezom_ast_validate(ezom_ast_node_t* node, char* error_buffer, size_t buffer_size);

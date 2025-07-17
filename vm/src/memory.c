@@ -564,10 +564,8 @@ void ezom_mark_object_references(uint24_t obj) {
                 ezom_mark_object(block->outer_context);
             }
             
-            // Mark code pointer (if any)
-            if (block->code) {
-                ezom_mark_object(block->code);
-            }
+            // Note: block->code is an AST node (native pointer), not an EZOM object
+            // AST nodes are not garbage collected by the EZOM memory system
             
             // Note: captured_vars array would need more complex handling
             // For now, we'll skip it as it's a variable-length array

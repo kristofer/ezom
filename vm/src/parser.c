@@ -389,7 +389,17 @@ ezom_ast_node_t* ezom_parse_block(ezom_parser_t* parser) {
     // Parse block parameters :param1 :param2 |
     if (ezom_parser_check(parser, TOKEN_COLON)) {
         block->data.block.parameters = ezom_parse_block_parameters(parser);
+        block->data.block.param_count = ezom_ast_count_parameters(block->data.block.parameters);
         ezom_parser_consume(parser, TOKEN_PIPE, "Expected '|' after block parameters");
+        ezom_parser_skip_newlines(parser);
+    }
+    
+    // Parse block local variables | local1 local2 |
+    if (ezom_parser_check(parser, TOKEN_PIPE)) {
+        ezom_parser_consume(parser, TOKEN_PIPE, "Expected '|' for block locals");
+        block->data.block.locals = ezom_parse_variable_list(parser);
+        block->data.block.local_count = ezom_ast_count_variables(block->data.block.locals);
+        ezom_parser_consume(parser, TOKEN_PIPE, "Expected '|' after block locals");
         ezom_parser_skip_newlines(parser);
     }
     

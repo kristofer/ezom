@@ -272,6 +272,11 @@ uint16_t ezom_ast_count_locals(ezom_ast_node_t* locals) {
     return locals->data.variable_list.count;
 }
 
+uint16_t ezom_ast_count_variables(ezom_ast_node_t* variables) {
+    if (!variables || variables->type != AST_VARIABLE_LIST) return 0;
+    return variables->data.variable_list.count;
+}
+
 // Memory management
 
 void ezom_ast_free(ezom_ast_node_t* node) {

@@ -85,3 +85,7 @@ bool ezom_is_string(uint24_t obj);
 bool ezom_is_array(uint24_t obj);
 bool ezom_is_block(uint24_t obj);
 bool ezom_is_boolean(uint24_t obj);
+
+// Block primitive functions
+uint24_t prim_block_value(uint24_t receiver, uint24_t* args, uint8_t arg_count);
+uint24_t prim_block_value_with(uint24_t receiver, uint24_t* args, uint8_t arg_count);
