@@ -156,15 +156,8 @@ ezom_eval_result_t ezom_evaluate_message_send(ezom_ast_node_t* node, uint24_t co
     if (node->data.message_send.arg_count == 0) {
         // Unary message
         return ezom_eval_send_unary_message(receiver, selector, context);
-    } else if (node->data.message_send.arg_count == 1) {
-        // Binary message (typically)
-        ezom_eval_result_t arg_result = ezom_evaluate_expression(node->data.message_send.arguments, context);
-        if (arg_result.is_error) {
-            return arg_result;
-        }
-        return ezom_eval_send_binary_message(receiver, selector, arg_result.value, context);
-    } else {
-        // Keyword message
+    } else if (strstr(selector, ":") != NULL) {
+        // Keyword message (selector contains colon)
         uint24_t arg_values[16]; // Max 16 arguments
         ezom_eval_result_t arg_result = ezom_evaluate_arguments(node->data.message_send.arguments, 
                                                               arg_values, 16, context);
@@ -173,6 +166,13 @@ ezom_eval_result_t ezom_evaluate_message_send(ezom_ast_node_t* node, uint24_t co
         }
         uint8_t arg_count = (uint8_t)arg_result.value;
         return ezom_eval_send_keyword_message(receiver, selector, arg_values, arg_count, context);
+    } else {
+        // Binary message (typically)
+        ezom_eval_result_t arg_result = ezom_evaluate_expression(node->data.message_send.arguments, context);
+        if (arg_result.is_error) {
+            return arg_result;
+        }
+        return ezom_eval_send_binary_message(receiver, selector, arg_result.value, context);
     }
 }
 
@@ -504,16 +504,16 @@ ezom_eval_result_t ezom_eval_send_keyword_message(uint24_t receiver, const char*
                                                  uint24_t* arguments, uint8_t arg_count, uint24_t context) {
     uint24_t selector_sym = ezom_create_symbol(selector, strlen(selector));
     
-    if (arg_count == 0) {
-        uint24_t result = ezom_send_unary_message(receiver, selector_sym);
-        return ezom_make_result(result);
-    } else if (arg_count == 1) {
-        uint24_t result = ezom_send_binary_message(receiver, selector_sym, arguments[0]);
-        return ezom_make_result(result);
-    } else {
-        // Multi-argument keyword messages would need enhanced dispatch system
-        return ezom_make_result(g_nil);
-    }
+    // Create message structure for keyword message
+    ezom_message_t msg = {
+        .selector = selector_sym,
+        .receiver = receiver,
+        .args = arguments,
+        .arg_count = arg_count
+    };
+    
+    uint24_t result = ezom_send_message(&msg);
+    return ezom_make_result(result);
 }
 
 // Argument evaluation

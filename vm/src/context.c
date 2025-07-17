@@ -151,7 +151,7 @@ uint24_t ezom_create_ast_block(ezom_ast_node_t* ast_node, uint24_t outer_context
     uint24_t ptr = ezom_allocate(sizeof(ezom_block_t));
     if (!ptr) return 0;
     
-    ezom_init_object(ptr, g_block_class, EZOM_TYPE_OBJECT);
+    ezom_init_object(ptr, g_block_class, EZOM_TYPE_BLOCK);
     
     ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(ptr);
     block->outer_context = outer_context;

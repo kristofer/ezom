@@ -326,57 +326,6 @@ uint24_t ezom_send_message(ezom_message_t* msg) {
                 return g_nil;
             }
             
-            // Emergency bypass for true ifTrue: primitive - improved version crashes
-            if (prim_num == PRIM_TRUE_IF_TRUE) { // PRIM_TRUE_IF_TRUE = 50
-                printf("DEBUG: Using emergency bypass for true ifTrue: (primitive crashes)\n");
-                ezom_log("DEBUG: Using emergency bypass for true ifTrue: (primitive crashes)\n");
-                
-                if (msg->arg_count == 1 && msg->receiver == g_true) {
-                    printf("DEBUG: Executing true ifTrue: block\n");
-                    ezom_log("DEBUG: Executing true ifTrue: block\n");
-                    
-                    // Simply return the receiver (true) - don't try to execute the block yet
-                    return g_true;
-                } else {
-                    printf("DEBUG: Invalid receiver for true ifTrue:\n");
-                    ezom_log("DEBUG: Invalid receiver for true ifTrue:\n");
-                    return g_nil;
-                }
-            }
-            
-            if (prim_num == PRIM_INTEGER_MOD) {
-                printf("DEBUG: Calling improved integer modulo primitive\n");
-                ezom_log("DEBUG: Calling improved integer modulo primitive\n");
-            }
-            
-            if (prim_num == PRIM_INTEGER_LTE) {
-                printf("DEBUG: Calling improved integer LTE primitive\n");
-                ezom_log("DEBUG: Calling improved integer LTE primitive\n");
-            }
-            
-            if (prim_num == PRIM_INTEGER_AS_STRING) {
-                printf("DEBUG: Calling improved integer asString primitive\n");
-                ezom_log("DEBUG: Calling improved integer asString primitive\n");
-            }
-            
-            // Emergency bypass for false ifTrue: primitive - improved version crashes
-            if (prim_num == PRIM_FALSE_IF_TRUE) { // PRIM_FALSE_IF_TRUE = 53
-                printf("DEBUG: Using emergency bypass for false ifTrue: (primitive crashes)\n");
-                ezom_log("DEBUG: Using emergency bypass for false ifTrue: (primitive crashes)\n");
-                
-                if (msg->arg_count == 1 && msg->receiver == g_false) {
-                    printf("DEBUG: false ifTrue: should not execute block, returning nil\n");
-                    ezom_log("DEBUG: false ifTrue: should not execute block, returning nil\n");
-                    
-                    // false ifTrue: should not execute the block, return nil
-                    return g_nil;
-                } else {
-                    printf("DEBUG: Invalid receiver for false ifTrue:\n");
-                    ezom_log("DEBUG: Invalid receiver for false ifTrue:\n");
-                    return g_nil;
-                }
-            }
-            
             printf("DEBUG: About to call primitive function\n");
             printf("DEBUG: prim_num=%d, function_ptr=0x%06lX\n", prim_num, (unsigned long)g_primitives[prim_num]);
             printf("DEBUG: receiver=0x%06lX, args=0x%06lX, arg_count=%d\n", 

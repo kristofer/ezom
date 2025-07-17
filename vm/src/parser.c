@@ -266,11 +266,12 @@ ezom_ast_node_t* ezom_parse_binary_message(ezom_parser_t* parser, ezom_ast_node_
 
 ezom_ast_node_t* ezom_parse_keyword_message(ezom_parser_t* parser, ezom_ast_node_t* receiver) {
     char selector[256] = "";
-    ezom_ast_node_t* arguments = NULL;
+    ezom_ast_node_t* arguments[16]; // Maximum 16 arguments
+    uint8_t arg_count = 0;
     
     // Parse keyword:argument pairs
     while (ezom_parser_check(parser, TOKEN_IDENTIFIER) && 
-           ezom_is_keyword_start(parser)) {
+           ezom_is_keyword_start(parser) && arg_count < 16) {
         
         // Parse keyword
         char* keyword = ezom_copy_current_token_text(parser);
@@ -297,20 +298,17 @@ ezom_ast_node_t* ezom_parse_keyword_message(ezom_parser_t* parser, ezom_ast_node
             if (!arg) return NULL;
         }
         
-        // Add argument to list
-        if (!arguments) {
-            arguments = arg;
-        } else {
-            ezom_ast_node_t* current = arguments;
-            while (current->next) {
-                current = current->next;
-            }
-            current->next = arg;
-        }
+        // Store argument
+        arguments[arg_count++] = arg;
     }
     
+    // Create message node
     ezom_ast_node_t* message = ezom_ast_create_message_send(receiver, selector);
-    message->data.message_send.arguments = arguments;
+    
+    // Add arguments using proper function to maintain arg_count
+    for (uint8_t i = 0; i < arg_count; i++) {
+        ezom_ast_add_argument(message, arguments[i]);
+    }
     
     return message;
 }
