@@ -30,6 +30,11 @@ uint24_t ezom_context_get_local(uint24_t context_ptr, uint8_t index);
 uint24_t ezom_context_lookup_variable(uint24_t context_ptr, const char* name);
 void ezom_context_bind_parameters(uint24_t context_ptr, uint24_t* args, uint8_t arg_count);
 
+// Enhanced block parameter and local variable handling
+void ezom_context_bind_block_parameters(uint24_t context_ptr, uint24_t* args, uint8_t arg_count, uint8_t param_count);
+void ezom_context_initialize_block_locals(uint24_t context_ptr, uint8_t param_count, uint8_t local_count);
+uint24_t ezom_create_enhanced_block_context(uint24_t outer_context, uint24_t block_ptr, uint8_t param_count, uint8_t local_count);
+
 // Block object functions (Phase 2 extensions)
 uint24_t ezom_create_ast_block(ezom_ast_node_t* ast_node, uint24_t outer_context);
 uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_count);
@@ -44,6 +49,11 @@ bool ezom_is_false_object(uint24_t object_ptr);
 void ezom_push_context(uint24_t context_ptr);
 uint24_t ezom_pop_context(void);
 uint24_t ezom_get_current_context(void);
+
+// Enhanced variable access with proper scoping
+uint24_t ezom_context_get_variable(uint24_t context_ptr, const char* var_name, uint8_t var_index);
+void ezom_context_set_variable(uint24_t context_ptr, const char* var_name, uint8_t var_index, uint24_t value);
+uint24_t ezom_create_extended_context(uint24_t outer_context, uint24_t receiver, uint16_t method_index, uint8_t local_count);
 
 // Utility functions
 bool ezom_is_block_object(uint24_t object_ptr);

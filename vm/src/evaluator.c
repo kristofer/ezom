@@ -649,10 +649,10 @@ uint24_t ezom_get_context_receiver(uint24_t context_ptr) {
 }
 
 uint24_t ezom_get_local_variable(uint24_t context_ptr, uint16_t index) {
-    if (context_ptr == 0) return 0;
+    if (context_ptr == 0) return g_nil;
     
     ezom_context_t* context = EZOM_OBJECT_PTR(context_ptr);
-    if (!context || index >= context->local_count) return 0;
+    if (!context || index >= context->local_count) return g_nil;
     
     return context->locals[index];
 }
@@ -670,6 +670,7 @@ void ezom_set_local_variable(uint24_t context_ptr, uint16_t index, uint24_t valu
     if (!context || index >= context->local_count) return;
     
     context->locals[index] = value;
+    printf("Set local variable %d to 0x%06X\n", index, value);
 }
 
 // Utility functions

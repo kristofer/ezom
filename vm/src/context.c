@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <string.h>
 
+// Forward declaration from parser.c
+extern int ezom_find_parameter_index(const char* name, ezom_ast_node_t* parameters);
+
 // Global object references (declared in bootstrap.c)
 extern uint24_t g_block_class;
 extern uint24_t g_context_class;
@@ -62,7 +65,7 @@ void ezom_init_context_system(void) {
     printf("EZOM: Context system initialization complete.\n");
 }
 
-uint24_t ezom_create_extended_context(uint24_t outer_context, uint24_t method, uint24_t receiver, uint8_t local_count) {
+uint24_t ezom_create_extended_context(uint24_t outer_context, uint24_t receiver, uint16_t method_index, uint8_t local_count) {
     uint16_t total_size = sizeof(ezom_context_t) + (local_count * sizeof(uint24_t));
     uint24_t ptr = ezom_allocate(total_size);
     if (!ptr) return 0;
@@ -71,7 +74,7 @@ uint24_t ezom_create_extended_context(uint24_t outer_context, uint24_t method, u
     
     ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(ptr);
     context->outer_context = outer_context;
-    context->method = method;
+    context->method = method_index;
     context->receiver = receiver;
     context->sender = 0;  // Use Phase 1.5 structure
     context->pc = 0;      // Use Phase 1.5 structure
@@ -116,21 +119,37 @@ uint24_t ezom_context_get_local(uint24_t context_ptr, uint8_t index) {
 }
 
 uint24_t ezom_context_lookup_variable(uint24_t context_ptr, const char* name) {
-    // This is a simplified version - a full implementation would need
-    // to track variable names and their indices
     if (!context_ptr || !name) return g_nil;
     
     ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
     
-    // Look up in current context's locals
-    // For now, just return nil - this would need a symbol table
-    // to map variable names to indices
+    // Try to resolve variable name to index using the block's AST
+    // This is a simplified approach - we'll look for the variable in the block's parameters
+    if (context->method) {
+        // The method field contains the block pointer when executing blocks
+        ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(context->method);
+        if (block && block->code) {
+            ezom_ast_node_t* block_ast = (ezom_ast_node_t*)block->code;
+            if (block_ast && block_ast->type == AST_BLOCK && block_ast->data.block.parameters) {
+                // Look for the parameter name in the block's parameter list
+                int param_index = ezom_find_parameter_index(name, block_ast->data.block.parameters);
+                if (param_index >= 0 && param_index < block->param_count) {
+                    printf("   Debug: Found parameter '%s' at index %d\n", name, param_index);
+                    return context->locals[param_index];
+                }
+            }
+        }
+    }
+    
+    // Look up in current context's locals (for local variables)
+    // This would need a more sophisticated symbol table for locals
     
     // Check outer context
     if (context->outer_context) {
         return ezom_context_lookup_variable(context->outer_context, name);
     }
     
+    printf("   Debug: Undefined variable: '%s'\n", name);
     return g_nil;
 }
 
@@ -143,6 +162,93 @@ void ezom_context_bind_parameters(uint24_t context_ptr, uint24_t* args, uint8_t 
     for (uint8_t i = 0; i < param_count; i++) {
         context->locals[i] = args[i];
     }
+}
+
+// Enhanced block parameter and local variable handling
+void ezom_context_bind_block_parameters(uint24_t context_ptr, uint24_t* args, uint8_t arg_count, uint8_t param_count) {
+    if (!context_ptr || !args || arg_count == 0) return;
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    
+    // Parameters come first in the locals array
+    uint8_t actual_param_count = arg_count < param_count ? arg_count : param_count;
+    
+    printf("   Binding %d parameters to block context\n", actual_param_count);
+    
+    for (uint8_t i = 0; i < actual_param_count; i++) {
+        context->locals[i] = args[i];
+        printf("     Parameter %d bound to value 0x%06X\n", i, args[i]);
+    }
+    
+    // Initialize remaining parameter slots to nil if fewer args than params
+    for (uint8_t i = actual_param_count; i < param_count; i++) {
+        context->locals[i] = g_nil;
+        printf("     Parameter %d initialized to nil\n", i);
+    }
+}
+
+void ezom_context_initialize_block_locals(uint24_t context_ptr, uint8_t param_count, uint8_t local_count) {
+    if (!context_ptr || local_count == 0) return;
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    
+    printf("   Initializing %d local variables in block context\n", local_count);
+    
+    // Local variables come after parameters in the locals array
+    for (uint8_t i = 0; i < local_count; i++) {
+        uint8_t local_index = param_count + i;
+        context->locals[local_index] = g_nil;
+        printf("     Local %d (index %d) initialized to nil\n", i, local_index);
+    }
+}
+
+// Enhanced block context creation with proper parameter and local support
+uint24_t ezom_create_enhanced_block_context(uint24_t outer_context, uint24_t block_ptr, uint8_t param_count, uint8_t local_count) {
+    uint8_t total_locals = param_count + local_count;
+    uint24_t context = ezom_create_extended_context(outer_context, block_ptr, 0, total_locals);
+    
+    if (!context) return 0;
+    
+    printf("   Created enhanced block context with %d parameters and %d locals\n", param_count, local_count);
+    
+    // Initialize all locals to nil initially
+    ezom_context_initialize_block_locals(context, param_count, local_count);
+    
+    return context;
+}
+
+// Enhanced variable lookup with proper scoping
+uint24_t ezom_context_get_variable(uint24_t context_ptr, const char* var_name, uint8_t var_index) {
+    if (!context_ptr) return g_nil;
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    
+    // Check if variable index is within range
+    if (var_index < context->local_count) {
+        return context->locals[var_index];
+    }
+    
+    // Variable not found in current context, check outer context
+    if (context->outer_context) {
+        return ezom_context_get_variable(context->outer_context, var_name, var_index);
+    }
+    
+    printf("Warning: Variable '%s' not found in any context\n", var_name);
+    return g_nil;
+}
+
+void ezom_context_set_variable(uint24_t context_ptr, const char* var_name, uint8_t var_index, uint24_t value) {
+    if (!context_ptr) return;
+    
+    ezom_context_t* context = (ezom_context_t*)EZOM_OBJECT_PTR(context_ptr);
+    
+    // Check if variable index is within range
+    if (var_index < context->local_count) {
+        context->locals[var_index] = value;
+        return;
+    }
+    
+    printf("Warning: Variable '%s' index %d out of range in context\n", var_name, var_index);
 }
 
 // Block object functions
@@ -172,23 +278,18 @@ uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_cou
     if (!block_ptr) return g_nil;
     
     ezom_block_t* block = (ezom_block_t*)EZOM_OBJECT_PTR(block_ptr);
+    if (!block) return g_nil;
     
-    // Check argument count
-    if (arg_count != block->param_count) {
-        printf("Block argument count mismatch: expected %d, got %d\n", 
-               block->param_count, arg_count);
-        return g_nil;
-    }
+    printf("   Evaluating block with %d parameters and %d locals\n", block->param_count, block->local_count);
     
-    // Create block execution context
-    uint24_t context = ezom_create_block_context(block->outer_context, block_ptr, 
-                                                 block->local_count + block->param_count);
+    // Create enhanced context for block evaluation
+    uint24_t context = ezom_create_enhanced_block_context(block->outer_context, block_ptr, 
+                                                          block->param_count, block->local_count);
+    
     if (!context) return g_nil;
     
-    // Bind parameters to context
-    if (arg_count > 0) {
-        ezom_context_bind_parameters(context, args, arg_count);
-    }
+    // Bind parameters from args using enhanced parameter binding
+    ezom_context_bind_block_parameters(context, args, arg_count, block->param_count);
     
     // Push context and evaluate
     ezom_push_context(context);
@@ -207,6 +308,7 @@ uint24_t ezom_block_evaluate(uint24_t block_ptr, uint24_t* args, uint8_t arg_cou
     
     ezom_pop_context();
     
+    printf("   Block evaluation returned: 0x%06X\n", result);
     return result;
 }
 
