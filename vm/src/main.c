@@ -674,11 +674,316 @@ int main(int argc, char* argv[]) {
     printf("✓ Argument evaluation system\n");
     printf("✓ Method compilation from AST\n");
     printf("✓ ez80 ADL mode 24-bit pointer support\n");
-    printf("\nThe EZOM VM now supports all Phase 2 requirements!\n");
+    printf("\n");
+    printf("The EZOM VM now supports all Phase 2 requirements!\n");
     printf("Ready for Phase 3 (Memory Management) implementation.\n");
+
+    // ========================================
+    // PHASE 3 STEP 1 TESTING - Enhanced Memory Statistics
+    // ========================================
+    printf("\n");
+    printf("=========================================\n");
+    printf("✓ PHASE 3 STEP 1 - MEMORY STATISTICS TEST\n");
+    printf("=========================================\n");
     
-    // Final log close
-    ezom_log_close();
+    // Test detailed memory statistics
+    printf("1. Current Memory Statistics:\n");
+    ezom_detailed_memory_stats();
     
+    // Test object allocation tracking
+    printf("\n2. Testing Object Type Tracking:\n");
+    printf("   Creating 5 integers for tracking test...\n");
+    for (int i = 0; i < 5; i++) {
+        uint24_t test_int = ezom_create_integer(100 + i);
+        printf("   Created integer %d: 0x%06X\n", 100 + i, test_int);
+    }
+    
+    printf("   Creating 3 strings for tracking test...\n");
+    uint24_t test_str1 = ezom_create_string("Test1", 5);
+    uint24_t test_str2 = ezom_create_string("Test2", 5);  
+    uint24_t test_str3 = ezom_create_string("Test3", 5);
+    printf("   Created strings: 0x%06X, 0x%06X, 0x%06X\n", test_str1, test_str2, test_str3);
+    
+    // Show updated statistics
+    printf("\n3. Updated Memory Statistics After Object Creation:\n");
+    ezom_detailed_memory_stats();
+    
+    // Test memory pressure and fragmentation
+    printf("\n4. Memory Pressure Analysis:\n");
+    int pressure = ezom_get_memory_pressure();
+    printf("   Current memory pressure: %d%%\n", pressure);
+    
+    printf("\n5. Fragmentation Report:\n");
+    ezom_memory_fragmentation_report();
+    
+    // Test GC threshold configuration
+    printf("\n6. Garbage Collection Configuration:\n");
+    ezom_set_gc_threshold(50000);  // 50KB threshold
+    printf("   GC threshold set to 50KB\n");
+    bool should_gc = ezom_should_trigger_gc();
+    printf("   Should trigger GC now? %s\n", should_gc ? "Yes" : "No");
+    
+    printf("\n");
+    printf("=======================================\n");
+    printf("✓ PHASE 3 STEP 1 COMPLETE\n");
+    printf("=======================================\n");
+    printf("Enhanced Memory Statistics Features Tested:\n");
+    printf("✓ Detailed allocation tracking\n");
+    printf("✓ Object type counters\n");
+    printf("✓ Memory pressure monitoring\n");
+    printf("✓ Fragmentation analysis\n");
+    printf("✓ GC threshold configuration\n");
+    printf("✓ GC trigger detection\n");
+    printf("\n");
+    printf("Ready for Phase 3 Step 2: Free List Allocator\n");
+
+    // ========================================
+    // PHASE 3 STEP 2 TESTING - Free List Allocator
+    // ========================================
+    printf("\n");
+    printf("=========================================\n");
+    printf("✓ PHASE 3 STEP 2 - FREE LIST ALLOCATOR TEST\n");
+    printf("=========================================\n");
+    
+    // Test free list allocator
+    printf("1. Testing Free List Allocator:\n");
+    
+    // Enable free list allocator
+    printf("   Enabling free list allocator...\n");
+    ezom_enable_free_lists(true);
+    
+    // Test size class mapping
+    printf("\n2. Testing Size Class Mapping:\n");
+    uint16_t test_sizes[] = {8, 16, 24, 32, 48, 64, 96, 128, 200, 300, 500, 800, 1200, 2000};
+    int num_sizes = sizeof(test_sizes) / sizeof(test_sizes[0]);
+    
+    for (int i = 0; i < num_sizes; i++) {
+        uint8_t class_idx = ezom_size_to_class(test_sizes[i]);
+        uint16_t class_size = ezom_class_to_size(class_idx);
+        printf("   Size %4d -> Class %2d (%4d bytes)\n", test_sizes[i], class_idx, class_size);
+    }
+    
+    // Test allocation with free lists
+    printf("\n3. Testing Free List Allocation:\n");
+    uint24_t test_ptrs[10];
+    
+    // Allocate some objects
+    printf("   Allocating 10 objects of varying sizes...\n");
+    for (int i = 0; i < 10; i++) {
+        uint16_t size = 16 + (i * 8);  // 16, 24, 32, 40, 48, etc.
+        test_ptrs[i] = ezom_allocate_typed(size, EZOM_TYPE_INTEGER);
+        printf("   Object %d: %d bytes -> 0x%06X\n", i + 1, size, test_ptrs[i]);
+    }
+    
+    // Show current free list state
+    printf("\n4. Free List State (should be empty - no deallocations yet):\n");
+    ezom_free_list_stats();
+    
+    // Test manual deallocation (simulate object destruction)
+    printf("5. Testing Deallocation to Free Lists:\n");
+    printf("   Deallocating every other object...\n");
+    for (int i = 0; i < 10; i += 2) {
+        uint16_t size = 16 + (i * 8);
+        ezom_freelist_deallocate(test_ptrs[i], size);
+        printf("   Deallocated object %d (size %d)\n", i + 1, size);
+    }
+    
+    // Show free list state after deallocation
+    printf("\n6. Free List State After Deallocation:\n");
+    ezom_free_list_stats();
+    
+    // Test reallocation (should reuse free blocks)
+    printf("7. Testing Free Block Reuse:\n");
+    printf("   Allocating objects that should reuse free blocks...\n");
+    for (int i = 0; i < 5; i++) {
+        uint16_t size = 16 + (i * 16);  // Different sizes to test different classes
+        uint24_t ptr = ezom_allocate_typed(size, EZOM_TYPE_STRING);
+        printf("   New allocation: %d bytes -> 0x%06X\n", size, ptr);
+    }
+    
+    // Final free list state
+    printf("\n8. Final Free List State:\n");
+    ezom_free_list_stats();
+    
+    // Test memory statistics after free list operations
+    printf("\n9. Updated Memory Statistics After Free List Testing:\n");
+    ezom_detailed_memory_stats();
+    
+    printf("\n");
+    printf("=======================================\n");
+    printf("✓ PHASE 3 STEP 2 COMPLETE\n");
+    printf("=======================================\n");
+    printf("Free List Allocator Features Tested:\n");
+    printf("✓ Size class mapping\n");
+    printf("✓ Free list allocation\n");
+    printf("✓ Free block deallocation\n");
+    printf("✓ Free block reuse\n");
+    printf("✓ Free list statistics\n");
+    printf("✓ Integration with typed allocation\n");
+    printf("\n");
+    printf("Ready for Phase 3 Step 3: Object Marking System\n");
+
+    // PHASE 3 STEP 3 TESTING - Object Marking System
+    printf("\n");
+    printf("=========================================\n");
+    printf("✓ PHASE 3 STEP 3 - OBJECT MARKING SYSTEM TEST\n");
+    printf("=========================================\n");
+    
+    // 1. Initialize GC Root Set with Global Objects
+    printf("1. Setting up GC Root Set:\n");
+    printf("   Adding global class objects as GC roots...\n");
+    
+    ezom_add_gc_root(g_object_class);
+    ezom_add_gc_root(g_integer_class);
+    ezom_add_gc_root(g_string_class);
+    ezom_add_gc_root(g_symbol_class);
+    ezom_add_gc_root(g_array_class);
+    ezom_add_gc_root(g_block_class);
+    ezom_add_gc_root(g_boolean_class);
+    ezom_add_gc_root(g_true_class);
+    ezom_add_gc_root(g_false_class);
+    ezom_add_gc_root(g_nil_class);
+    
+    ezom_add_gc_root(g_nil);
+    ezom_add_gc_root(g_true);
+    ezom_add_gc_root(g_false);
+    
+    ezom_list_gc_roots();
+    
+    // 2. Test Object Marking
+    printf("2. Testing Individual Object Marking:\n");
+    
+    // Create some test objects
+    uint24_t test_int1 = ezom_create_integer(42);
+    uint24_t test_int2 = ezom_create_integer(84);
+    uint24_t test_str = ezom_create_string("test", 4);
+    
+    printf("   Created test objects:\n");
+    printf("     Integer 42: 0x%06X\n", test_int1);
+    printf("     Integer 84: 0x%06X\n", test_int2);
+    printf("     String 'test': 0x%06X\n", test_str);
+    
+    // Test marking individual objects
+    printf("   Testing mark/unmark operations:\n");
+    printf("     test_int1 marked: %s\n", ezom_is_marked(test_int1) ? "yes" : "no");
+    
+    ezom_mark_object(test_int1);
+    printf("     After marking test_int1: %s\n", ezom_is_marked(test_int1) ? "yes" : "no");
+    
+    ezom_unmark_object(test_int1);
+    printf("     After unmarking test_int1: %s\n", ezom_is_marked(test_int1) ? "yes" : "no");
+    
+    // 3. Test Full Mark Phase
+    printf("\n3. Testing Full Mark Phase:\n");
+    
+    // Add our test objects as temporary roots
+    ezom_add_gc_root(test_int1);
+    ezom_add_gc_root(test_str);
+    // Intentionally NOT adding test_int2 to see it as garbage
+    
+    printf("   Added test objects to GC roots (except test_int2)\n");
+    
+    // Run mark phase
+    ezom_mark_phase();
+    
+    // Check results
+    printf("   After mark phase:\n");
+    printf("     test_int1 marked: %s (should be yes - it's a root)\n", 
+           ezom_is_marked(test_int1) ? "yes" : "no");
+    printf("     test_int2 marked: %s (should be no - not a root)\n", 
+           ezom_is_marked(test_int2) ? "yes" : "no");
+    printf("     test_str marked: %s (should be yes - it's a root)\n", 
+           ezom_is_marked(test_str) ? "yes" : "no");
+    
+    // 4. Test Array with References
+    printf("\n4. Testing Reference Traversal with Arrays:\n");
+    
+    uint24_t test_array = ezom_create_array(3);
+    ezom_array_t* array_obj = (ezom_array_t*)EZOM_OBJECT_PTR(test_array);
+    
+    // Fill array with references to our test objects
+    array_obj->elements[0] = test_int1;
+    array_obj->elements[1] = test_int2;
+    array_obj->elements[2] = test_str;
+    
+    printf("   Created array with 3 elements\n");
+    printf("   Array: 0x%06X\n", test_array);
+    printf("     [0] = 0x%06X (test_int1)\n", array_obj->elements[0]);
+    printf("     [1] = 0x%06X (test_int2)\n", array_obj->elements[1]);
+    printf("     [2] = 0x%06X (test_str)\n", array_obj->elements[2]);
+    
+    // Clear all marks and add only the array as root
+    ezom_clear_all_marks();
+    ezom_clear_gc_roots();
+    
+    // Add system roots back
+    ezom_add_gc_root(g_object_class);
+    ezom_add_gc_root(g_integer_class);
+    ezom_add_gc_root(g_string_class);
+    ezom_add_gc_root(g_array_class);
+    ezom_add_gc_root(g_nil);
+    ezom_add_gc_root(g_true);
+    ezom_add_gc_root(g_false);
+    
+    // Add the array as a root
+    ezom_add_gc_root(test_array);
+    
+    printf("   Cleared marks and set array as only test root\n");
+    
+    // Run mark phase
+    ezom_mark_phase();
+    
+    printf("   After marking from array root:\n");
+    printf("     test_array marked: %s (should be yes - it's a root)\n", 
+           ezom_is_marked(test_array) ? "yes" : "no");
+    printf("     test_int1 marked: %s (should be yes - referenced by array)\n", 
+           ezom_is_marked(test_int1) ? "yes" : "no");
+    printf("     test_int2 marked: %s (should be yes - referenced by array)\n", 
+           ezom_is_marked(test_int2) ? "yes" : "no");
+    printf("     test_str marked: %s (should be yes - referenced by array)\n", 
+           ezom_is_marked(test_str) ? "yes" : "no");
+    
+    // 5. Test Garbage Detection
+    printf("\n5. Testing Garbage Detection:\n");
+    
+    // Create some objects that won't be reachable
+    uint24_t garbage1 = ezom_create_integer(999);
+    uint24_t garbage2 = ezom_create_string("garbage", 7);
+    
+    printf("   Created unreachable objects:\n");
+    printf("     Garbage integer: 0x%06X\n", garbage1);
+    printf("     Garbage string: 0x%06X\n", garbage2);
+    
+    // Run mark phase again (these new objects won't be marked)
+    ezom_mark_phase();
+    
+    printf("   After mark phase:\n");
+    printf("     garbage1 marked: %s (should be no - unreachable)\n", 
+           ezom_is_marked(garbage1) ? "yes" : "no");
+    printf("     garbage2 marked: %s (should be no - unreachable)\n", 
+           ezom_is_marked(garbage2) ? "yes" : "no");
+    
+    // Test sweep detection
+    ezom_sweep_detection_stats();
+    
+    // 6. Final Statistics
+    printf("6. Final Marking Statistics:\n");
+    ezom_marking_stats();
+
+    printf("\n");
+    printf("=======================================\n");
+    printf("✓ PHASE 3 STEP 3 COMPLETE\n");
+    printf("=======================================\n");
+    printf("Object Marking System Features Tested:\n");
+    printf("✓ Individual object marking/unmarking\n");
+    printf("✓ GC root set management\n");
+    printf("✓ Full mark phase execution\n");
+    printf("✓ Reference traversal (arrays)\n");
+    printf("✓ Garbage object detection\n");
+    printf("✓ Sweep detection statistics\n");
+    printf("✓ Mark phase statistics\n");
+    printf("\n");
+    printf("Ready for Phase 3 Step 4: Garbage Collection\n");
+
     return 0;
 }

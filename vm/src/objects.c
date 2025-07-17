@@ -13,8 +13,9 @@ uint24_t ezom_create_integer(int16_t value) {
     printf("DEBUG: ezom_create_integer called with value=%d\n", value);
     printf("DEBUG: g_integer_class=0x%06X\n", g_integer_class);
     
-    uint24_t ptr = ezom_allocate(sizeof(ezom_integer_t));
-    printf("DEBUG: ezom_allocate returned ptr=0x%06X\n", ptr);
+    // Phase 3: Use typed allocation for object tracking
+    uint24_t ptr = ezom_allocate_typed(sizeof(ezom_integer_t), EZOM_TYPE_INTEGER);
+    printf("DEBUG: ezom_allocate_typed returned ptr=0x%06X\n", ptr);
     if (!ptr) return 0;
     
     printf("DEBUG: About to call ezom_init_object...\n");
@@ -45,8 +46,9 @@ uint24_t ezom_create_integer(int16_t value) {
 uint24_t ezom_create_string(const char* data, uint16_t length) {
     printf("DEBUG: ezom_create_string entry, data='%.*s', length=%d\n", length, data, length);
     
-    uint24_t ptr = ezom_allocate(sizeof(ezom_string_t) + length + 1);
-    printf("DEBUG: ezom_allocate returned ptr=0x%06X\n", ptr);
+    // Phase 3: Use typed allocation for object tracking
+    uint24_t ptr = ezom_allocate_typed(sizeof(ezom_string_t) + length + 1, EZOM_TYPE_STRING);
+    printf("DEBUG: ezom_allocate_typed returned ptr=0x%06X\n", ptr);
     if (!ptr) return 0;
     
     // Bootstrap safety: use Object class if String class not ready
@@ -84,8 +86,9 @@ uint24_t ezom_create_symbol(const char* data, uint16_t length) {
     // For Phase 1, just create like a string - interning comes later
     printf("DEBUG: ezom_create_symbol called: data='%.*s' length=%d\n", length, data, length);
     
-    uint24_t ptr = ezom_allocate(sizeof(ezom_symbol_t) + length + 1);
-    printf("DEBUG: ezom_allocate returned ptr=0x%06X\n", ptr);
+    // Phase 3: Use typed allocation for object tracking
+    uint24_t ptr = ezom_allocate_typed(sizeof(ezom_symbol_t) + length + 1, EZOM_TYPE_SYMBOL);
+    printf("DEBUG: ezom_allocate_typed returned ptr=0x%06X\n", ptr);
     if (!ptr) return 0;
     
     printf("DEBUG: About to call ezom_init_object with ptr=0x%06X, g_symbol_class=0x%06X\n", ptr, g_symbol_class);

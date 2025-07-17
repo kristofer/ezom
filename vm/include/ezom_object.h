@@ -37,6 +37,7 @@ typedef struct ezom_object {
 #define EZOM_TYPE_OBJECT    0x10
 #define EZOM_TYPE_INTEGER   0x20
 #define EZOM_TYPE_STRING    0x30
+#define EZOM_TYPE_SYMBOL    0x35    // NEW: Symbol objects
 #define EZOM_TYPE_ARRAY     0x40
 #define EZOM_TYPE_CLASS     0x50
 #define EZOM_TYPE_BLOCK     0x60    // NEW: Block objects
